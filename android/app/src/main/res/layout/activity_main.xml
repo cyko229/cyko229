@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="20dp"
+            android:textSize="15sp" />
+
+        <!-- Enrolment form -->
+        <LinearLayout
+            android:id="@+id/enrolForm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/server_url_label" />
+
+            <EditText
+                android:id="@+id/serverUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="https://remotewake.example.com"
+                android:inputType="textUri"
+                android:autofillHints="url" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/pairing_code_label" />
+
+            <EditText
+                android:id="@+id/pairingCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="000000"
+                android:inputType="number"
+                android:maxLength="6" />
+
+            <Button
+                android:id="@+id/pairBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/pair_button" />
+        </LinearLayout>
+
+        <!-- Permissions / setup -->
+        <LinearLayout
+            android:id="@+id/setupButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/adminBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_admin" />
+
+            <Button
+                android:id="@+id/batteryBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/ignore_battery" />
+
+            <Button
+                android:id="@+id/unpairBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/unpair" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

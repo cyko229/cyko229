@@ -1,0 +1,16 @@
+# Node
+node_modules/
+server/.env
+server/data/
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/app/google-services.json
+*.iml
+.idea/
+
+# OS
+.DS_Store

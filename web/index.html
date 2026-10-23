@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RemoteWake — contrôle d'écran à distance</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <h1>RemoteWake</h1>
+      <p class="tagline">Allumez ou verrouillez l'écran de votre téléphone, où que vous soyez.</p>
+
+      <!-- Auth -->
+      <section id="auth" class="card hidden">
+        <div class="tabs">
+          <button data-tab="login" class="tab active">Connexion</button>
+          <button data-tab="register" class="tab">Créer un compte</button>
+        </div>
+        <form id="auth-form">
+          <label>Email<input type="email" id="email" autocomplete="email" required /></label>
+          <label>Mot de passe<input type="password" id="password" autocomplete="current-password" required minlength="8" /></label>
+          <button type="submit" class="primary" id="auth-submit">Se connecter</button>
+        </form>
+        <p class="error" id="auth-error"></p>
+      </section>
+
+      <!-- Dashboard -->
+      <section id="dashboard" class="hidden">
+        <div class="topbar">
+          <span id="who"></span>
+          <button id="logout" class="link">Déconnexion</button>
+        </div>
+
+        <div id="devices"></div>
+
+        <div class="card">
+          <h2>Ajouter un téléphone</h2>
+          <p class="muted">
+            Générez un code, puis saisissez-le dans l'application Android pour l'associer à ce compte.
+          </p>
+          <label>Nom de l'appareil<input type="text" id="device-name" placeholder="Mon téléphone" /></label>
+          <button id="pair-btn" class="primary">Générer un code d'association</button>
+          <div id="pair-result" class="hidden">
+            <p>Code (valable 10 minutes) :</p>
+            <div class="code" id="pair-code"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

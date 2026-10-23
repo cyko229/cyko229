@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.RemoteWake" parent="Theme.Material3.DayNight.NoActionBar" />
+
+    <!-- Fully transparent, no title: used by WakeActivity so nothing is shown. -->
+    <style name="Theme.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+</resources>

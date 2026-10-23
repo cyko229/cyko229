@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RemoteWake</string>
+    <string name="server_url_label">Adresse du serveur</string>
+    <string name="pairing_code_label">Code d\'association (6 chiffres)</string>
+    <string name="pair_button">Associer cet appareil</string>
+    <string name="enable_admin">Activer le verrouillage à distance</string>
+    <string name="ignore_battery">Ignorer l\'optimisation de la batterie</string>
+    <string name="unpair">Dissocier cet appareil</string>
+    <string name="admin_explanation">RemoteWake a besoin de ce droit pour verrouiller l\'écran lorsque vous le demandez depuis l\'application web. Il n\'efface pas vos données et ne modifie aucun autre réglage.</string>
+    <string name="channel_name">Connexion RemoteWake</string>
+    <string name="notif_title">RemoteWake est actif</string>
+    <string name="notif_text">Connexion sécurisée maintenue pour les commandes à distance.</string>
+</resources>
