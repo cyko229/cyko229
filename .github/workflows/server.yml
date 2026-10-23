@@ -1,0 +1,40 @@
+# Runs the server test suite against the real dependencies.
+name: Tests serveur
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Installer les dépendances
+        run: npm install --no-audit --no-fund
+
+      - name: Tests unitaires (store + signature/envoi FCM)
+        run: npm test
+
+      - name: Test de bout en bout
+        run: |
+          JWT_SECRET=ci-secret-not-used-in-production \
+          DATA_FILE="$RUNNER_TEMP/store.json" \
+            node src/index.js &
+          # Wait for the port instead of sleeping a fixed amount.
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8080/api/health >/dev/null 2>&1 && break
+            sleep 1
+          done
+          npm run test:e2e

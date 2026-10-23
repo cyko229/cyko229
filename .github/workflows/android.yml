@@ -1,0 +1,50 @@
+# Builds the Android APK on GitHub's runners, so you never need Android Studio:
+# download the finished APK from the run's "Artifacts" section, or from the
+# Releases page when you push a tag.
+name: APK Android
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  workflow_dispatch: # lets you start a build by hand from the Actions tab
+
+permissions:
+  contents: write # needed to attach the APK to a release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Rendre gradlew exécutable
+        run: chmod +x android/gradlew
+
+      - name: Compiler l'APK de debug
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Publier l'APK comme artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: remotewake-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      # Pushing a tag like v1.0 also puts the APK on the Releases page, where it
+      # has a stable link you can open straight from the phone.
+      - name: Joindre l'APK à la release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/*.apk

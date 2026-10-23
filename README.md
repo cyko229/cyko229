@@ -82,9 +82,17 @@ Sans FCM, tout fonctionne mais dépend de l'exemption de batterie. Avec FCM, un 
 
 L'appareil s'affiche alors « Veille — joignable par push » dans l'application web même quand le socket est fermé. Détails et modèle de sécurité : [`docs/android-capabilities.md`](docs/android-capabilities.md).
 
-## Compiler l'app Android
+## Récupérer l'app Android
 
-Ouvrez le dossier `android/` dans **Android Studio** (ou `./gradlew assembleDebug`). Il faut un accès réseau à `google()` / `mavenCentral()` pour télécharger les dépendances — ce que le bac à sable de développement de ce dépôt bloque, d'où une compilation à faire sur votre machine. `minSdk = 27` (Android 8.1+).
+**Sans rien installer :** GitHub compile l'APK à chaque push. Onglet **Actions** → dernier run **« APK Android »** → section **Artifacts** → téléchargez `remotewake-debug-apk`. Décompressez, transférez le `.apk` sur le téléphone et installez-le (il faudra autoriser les « sources inconnues »).
+
+Pour un lien stable, ouvrable directement depuis le téléphone, poussez un tag : l'APK est alors joint à la page **Releases**.
+
+```bash
+git tag v1.0 && git push origin v1.0
+```
+
+**Compiler vous-même :** ouvrez le dossier `android/` dans **Android Studio**, ou `cd android && ./gradlew assembleDebug`. Il faut un accès réseau à `google()` / `mavenCentral()` pour télécharger les dépendances. `minSdk = 27` (Android 8.1+).
 
 Pour tester sans serveur public, lancez le serveur sur votre PC et utilisez son adresse réseau local (ex. `http://192.168.1.20:8080`) ; le téléphone doit être sur le même Wi-Fi.
 
@@ -99,6 +107,8 @@ npm run test:e2e    # scénario complet : il faut d'abord lancer `npm start` dan
 Le test e2e simule un téléphone (WebSocket) et un client web : inscription → association → réglage de la durée de maintien → commande `wake` signée → accusé de réception, plus l'enregistrement du jeton push, les cas d'auth, de propriété, de durée hors bornes et de jeton invalide.
 
 ## Déploiement
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/cyko229/cyko229)
 
 Tout est fourni : [`render.yaml`](render.yaml) pour un déploiement en un clic, [`Dockerfile`](Dockerfile) + [`docker-compose.yml`](docker-compose.yml) + [`Caddyfile`](Caddyfile) pour votre propre serveur (HTTPS automatique).
 
