@@ -23,8 +23,9 @@ import java.util.concurrent.TimeUnit
  * periodic pings and we reconnect with backoff on any drop.
  *
  * NOTE: a persistent socket is the zero-setup path and works well when the app is exempt
- * from battery optimisation. For maximum reliability in deep Doze, add Firebase Cloud
- * Messaging high-priority pushes as the wake channel (see docs/android-capabilities.md).
+ * from battery optimisation. In deep Doze the socket is suspended, which is why the app
+ * also registers for Firebase Cloud Messaging: a high-priority push still gets through,
+ * and [FcmService] runs the very same command path (see docs/android-capabilities.md).
  */
 class ConnectionService : Service() {
 
@@ -38,6 +39,10 @@ class ConnectionService : Service() {
         super.onCreate()
         prefs = Prefs(this)
         startInForeground()
+        // A crash could have left the screen-off timeout raised; put it back.
+        KeepAwakeManager.restoreAfterRestart(this)
+        // Make sure the relay has a current push token for this install.
+        FcmService.refreshToken(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -62,6 +67,9 @@ class ConnectionService : Service() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Log.i(TAG, "connected")
                 backoffMs = 1000L
+                liveSocket = webSocket
+                // Tell the relay whether a keep-awake hold is still running.
+                reportStatus(applicationContext)
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -70,11 +78,13 @@ class ConnectionService : Service() {
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 Log.w(TAG, "socket failure: ${t.message}")
+                if (liveSocket === webSocket) liveSocket = null
                 scheduleReconnect()
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 Log.i(TAG, "closed: $code $reason")
+                if (liveSocket === webSocket) liveSocket = null
                 if (code == 4001) {
                     // Token rejected: we have been de-enrolled server-side. Stop cleanly.
                     prefs.clear()
@@ -90,24 +100,24 @@ class ConnectionService : Service() {
         val msg = runCatching { JSONObject(text) }.getOrNull() ?: return
         when (msg.optString("type")) {
             "command" -> {
-                val commandId = msg.optString("commandId")
-                val action = msg.optString("action")
-                var ok = true
-                var detail: String? = null
-                when (action) {
-                    "wake" -> ScreenController.wake(applicationContext)
-                    "lock" -> {
-                        ok = ScreenController.lock(applicationContext)
-                        if (!ok) detail = "device admin not enabled"
-                    }
-                    else -> { ok = false; detail = "unknown action" }
-                }
+                val command = CommandHandler.parse(msg)
+                // The token was already proven when this socket was opened, so a
+                // signature is welcome here but not required.
+                val result = CommandHandler.execute(applicationContext, command, requireSignature = false)
                 val ack = JSONObject()
                     .put("type", "ack")
-                    .put("commandId", commandId)
-                    .put("ok", ok)
-                if (detail != null) ack.put("detail", detail)
+                    .put("commandId", command.commandId)
+                    .put("ok", result.ok)
+                    .put("keepAwakeUntil", KeepAwakeManager.holdUntilMs)
+                if (result.detail != null) ack.put("detail", result.detail)
                 webSocket.send(ack.toString())
+            }
+            // The web app changed the keep-awake duration.
+            "config", "welcome" -> {
+                if (msg.has("keepAwakeSeconds")) {
+                    prefs.keepAwakeSeconds = msg.optInt("keepAwakeSeconds", prefs.keepAwakeSeconds)
+                    Log.i(TAG, "keep-awake duration is now ${prefs.keepAwakeSeconds}s")
+                }
             }
             "ping" -> webSocket.send(JSONObject().put("type", "pong").toString())
         }
@@ -151,6 +161,7 @@ class ConnectionService : Service() {
 
     override fun onDestroy() {
         shuttingDown = true
+        if (liveSocket === socket) liveSocket = null
         socket?.close(1000, "service stopping")
         client?.dispatcher?.executorService?.shutdown()
         super.onDestroy()
@@ -160,6 +171,19 @@ class ConnectionService : Service() {
 
     companion object {
         private const val TAG = "RemoteWakeSvc"
+
+        /** The socket of the running service, if any, for one-off reports. */
+        @Volatile
+        private var liveSocket: WebSocket? = null
+
+        /** Tells the relay how long the screen is still being held on. */
+        fun reportStatus(context: Context) {
+            val payload = JSONObject()
+                .put("type", "status")
+                .put("keepAwakeUntil", KeepAwakeManager.holdUntilMs)
+            val sentOverSocket = liveSocket?.send(payload.toString()) ?: false
+            if (!sentOverSocket) Relay.sendStatus(context)
+        }
 
         fun start(context: Context) {
             val intent = Intent(context, ConnectionService::class.java)

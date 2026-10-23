@@ -1,13 +1,13 @@
 {
   "name": "remotewake-server",
   "version": "1.0.0",
-  "description": "Secure relay server to wake/lock an Android phone screen remotely from a web app",
+  "description": "Secure relay server to wake/lock an Android phone screen remotely from a web app, with FCM push delivery and a configurable keep-screen-on timer",
   "type": "module",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node test/store.test.mjs",
+    "test": "node test/store.test.mjs && node test/fcm.test.mjs",
     "test:e2e": "node test/e2e.test.mjs"
   },
   "license": "MIT",

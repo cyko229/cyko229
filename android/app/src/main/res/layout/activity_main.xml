@@ -89,6 +89,20 @@
                 android:text="@string/ignore_battery" />
 
             <Button
+                android:id="@+id/writeSettingsBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/write_settings" />
+
+            <Button
+                android:id="@+id/fullScreenBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/full_screen_intent" />
+
+            <Button
                 android:id="@+id/unpairBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

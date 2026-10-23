@@ -2,6 +2,7 @@
 node_modules/
 server/.env
 server/data/
+server/firebase-service-account.json
 
 # Android / Gradle
 android/.gradle/

@@ -3,6 +3,16 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// FCM is optional. The Google Services plugin hard-fails when google-services.json
+// is missing, so we only apply it once you have dropped your Firebase config in.
+// Without it the app still builds and runs — on the WebSocket channel alone.
+val hasFirebaseConfig = file("google-services.json").exists()
+if (hasFirebaseConfig) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.lifecycle("[RemoteWake] no app/google-services.json — building without FCM push.")
+}
+
 android {
     namespace = "com.cyko.remotewake"
     compileSdk = 34
@@ -42,4 +52,9 @@ dependencies {
 
     // OkHttp gives us a resilient WebSocket client with automatic ping/pong.
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Firebase Cloud Messaging: the only channel that still wakes the phone in Doze.
+    // The BoM keeps the Firebase artifacts on matching versions.
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-messaging")
 }

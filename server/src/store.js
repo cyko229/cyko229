@@ -80,6 +80,19 @@ export class Store {
     return Object.values(this.data.devices).filter((d) => d.userId === userId);
   }
 
+  // An FCM registration token identifies an app install, not a pairing: if the
+  // same install is re-paired it must stop answering for the old device row.
+  releaseFcmToken(token, exceptDeviceId) {
+    let changed = false;
+    for (const device of Object.values(this.data.devices)) {
+      if (device.fcmToken === token && device.id !== exceptDeviceId) {
+        delete device.fcmToken;
+        changed = true;
+      }
+    }
+    if (changed) this._save();
+  }
+
   updateDevice(id, patch) {
     if (!this.data.devices[id]) return null;
     Object.assign(this.data.devices[id], patch);

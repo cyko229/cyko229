@@ -4,6 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>RemoteWake — contrôle d'écran à distance</title>
+    <meta name="description" content="Allumez ou verrouillez l'écran de votre téléphone Android à distance." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#0f1419" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="RemoteWake" />
+
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -30,6 +43,15 @@
         <div class="topbar">
           <span id="who"></span>
           <button id="logout" class="link">Déconnexion</button>
+        </div>
+
+        <!-- Shown only when the browser offers to install the PWA. -->
+        <div id="install-card" class="card install-card hidden">
+          <div>
+            <h2>Installer l'application</h2>
+            <p class="muted">Ajoutez RemoteWake à votre écran d'accueil : ouverture instantanée, plein écran.</p>
+          </div>
+          <button id="install-btn" class="primary">Installer</button>
         </div>
 
         <div id="devices"></div>

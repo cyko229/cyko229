@@ -8,7 +8,12 @@
     <string name="ignore_battery">Ignorer l\'optimisation de la batterie</string>
     <string name="unpair">Dissocier cet appareil</string>
     <string name="admin_explanation">RemoteWake a besoin de ce droit pour verrouiller l\'écran lorsque vous le demandez depuis l\'application web. Il n\'efface pas vos données et ne modifie aucun autre réglage.</string>
+    <string name="write_settings">Autoriser le maintien de l\'écran allumé</string>
+    <string name="full_screen_intent">Autoriser l\'affichage sur l\'écran verrouillé</string>
     <string name="channel_name">Connexion RemoteWake</string>
+    <string name="channel_wake_name">Réveil de l\'écran</string>
+    <string name="wake_notif_title">RemoteWake</string>
+    <string name="wake_notif_text">Demande d\'allumage de l\'écran.</string>
     <string name="notif_title">RemoteWake est actif</string>
     <string name="notif_text">Connexion sécurisée maintenue pour les commandes à distance.</string>
 </resources>

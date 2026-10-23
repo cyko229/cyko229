@@ -152,3 +152,107 @@ button.link:hover { color: var(--text); }
 }
 .toast.ok { border-color: var(--ok); }
 .toast.err { border-color: var(--danger); }
+.toast.clickable { cursor: pointer; }
+
+/* --- PWA install card --- */
+.install-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.install-card h2 { margin-bottom: 2px; }
+.install-card .primary { width: auto; margin-top: 0; padding: 11px 18px; white-space: nowrap; }
+
+/* --- keep-screen-on chronometer --- */
+.keepawake {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.keepawake-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.keepawake h3 { margin: 0; font-size: 0.95rem; font-weight: 600; }
+.keepawake p { margin: 4px 0 0; }
+
+.chrono {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.chrono-step {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.chrono-step:hover { border-color: var(--accent); }
+.chrono-display {
+  flex: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 6px 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.chrono-display.off { color: var(--muted); }
+
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.preset {
+  padding: 7px 12px;
+  font-size: 0.85rem;
+  background: var(--card-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.preset:hover { color: var(--text); }
+.preset.active { background: var(--accent); color: white; border-color: transparent; }
+
+.keepawake .save { margin-top: 12px; }
+
+.countdown {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--ok);
+}
+.countdown-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--card-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.countdown-bar span {
+  display: block;
+  height: 100%;
+  background: var(--ok);
+  transition: width 1s linear;
+}
+.countdown-text { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+@media (max-width: 420px) {
+  .install-card { flex-direction: column; align-items: stretch; }
+  .install-card .primary { width: 100%; }
+}
+
+/* Breathing room under the home indicator when installed as a PWA. */
+@media (display-mode: standalone) {
+  .app { padding-top: max(32px, env(safe-area-inset-top)); padding-bottom: max(64px, env(safe-area-inset-bottom)); }
+}

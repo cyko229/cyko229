@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
         binding.pairBtn.setOnClickListener { pair() }
         binding.adminBtn.setOnClickListener { requestDeviceAdmin() }
         binding.batteryBtn.setOnClickListener { requestIgnoreBatteryOptimizations() }
+        binding.writeSettingsBtn.setOnClickListener { requestWriteSettings() }
+        binding.fullScreenBtn.setOnClickListener { requestFullScreenIntent() }
         binding.unpairBtn.setOnClickListener { unpair() }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -55,11 +57,34 @@ class MainActivity : AppCompatActivity() {
         binding.setupButtons.visibility = if (enrolled) android.view.View.VISIBLE else android.view.View.GONE
 
         val admin = isAdminActive()
+        // Only offer the Android 14+ full-screen-intent grant where it is needed.
+        binding.fullScreenBtn.visibility =
+            if (enrolled && !ScreenController.canUseFullScreenIntent(this)) android.view.View.VISIBLE
+            else android.view.View.GONE
+
         if (enrolled) {
+            val keepAwake = prefs.keepAwakeSeconds
             binding.status.text = buildString {
                 append("✓ Associé en tant que « ${prefs.deviceName} »\n")
                 append("Serveur : ${prefs.serverUrl}\n\n")
                 append(if (admin) "✓ Verrouillage à distance activé" else "⚠ Verrouillage à distance NON activé (bouton ci-dessous)")
+                append("\n")
+                append(
+                    if (FcmService.isAvailable(this@MainActivity)) "✓ Notifications push (FCM) actives"
+                    else "⚠ Push (FCM) non configuré — connexion WebSocket seule",
+                )
+                append("\n")
+                append(
+                    if (keepAwake <= 0) "• Maintien de l'écran après déverrouillage : désactivé"
+                    else "• Écran maintenu allumé ${formatDuration(keepAwake)} après déverrouillage",
+                )
+                append("\n")
+                append(
+                    if (KeepAwakeManager.canWriteSettings(this@MainActivity))
+                        "  (via le délai de veille du système)"
+                    else "  (via un verrou d'écran — bouton ci-dessous pour la méthode douce)",
+                )
+                append("\n\nCes réglages se modifient depuis l'application web.")
             }
         } else {
             binding.status.text = "Non associé. Générez un code depuis l'application web, puis saisissez l'adresse du serveur et le code ci-dessous."
@@ -95,7 +120,10 @@ class MainActivity : AppCompatActivity() {
                     prefs.deviceToken = json.getString("deviceToken")
                     prefs.deviceId = json.getString("deviceId")
                     prefs.deviceName = json.optString("name", "Mon téléphone")
+                    prefs.keepAwakeSeconds = json.optInt("keepAwakeSeconds", Prefs.DEFAULT_KEEP_AWAKE_SECONDS)
                     ConnectionService.start(this@MainActivity)
+                    // Hand the relay this install's push token straight away.
+                    FcmService.refreshToken(this@MainActivity, force = true)
                     toast("Appareil associé ✓")
                     render()
                 }
@@ -105,6 +133,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun unpair() {
         ConnectionService.stop(this)
+        KeepAwakeManager.release(this)
         removeDeviceAdmin()
         prefs.clear()
         toast("Appareil dissocié.")
@@ -147,6 +176,47 @@ class MainActivity : AppCompatActivity() {
             Uri.parse("package:$packageName"),
         )
         startActivity(intent)
+    }
+
+    /**
+     * Optional grant. With it we keep the screen on by raising the system's
+     * screen-off timeout (and putting it back after), which is gentler than
+     * holding a wake lock. Without it the wake-lock fallback is used.
+     */
+    private fun requestWriteSettings() {
+        if (KeepAwakeManager.canWriteSettings(this)) {
+            toast("Déjà autorisé.")
+            return
+        }
+        startActivity(
+            Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:$packageName")),
+        )
+    }
+
+    /** Android 14+ only: lets the system show WakeActivity over the lock screen. */
+    private fun requestFullScreenIntent() {
+        if (ScreenController.canUseFullScreenIntent(this)) {
+            toast("Déjà autorisé.")
+            return
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                    Uri.parse("package:$packageName"),
+                ),
+            )
+        }
+    }
+
+    private fun formatDuration(seconds: Int): String {
+        val m = seconds / 60
+        val s = seconds % 60
+        return when {
+            m == 0 -> "${s} s"
+            s == 0 -> "${m} min"
+            else -> "${m} min ${s} s"
+        }
     }
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
