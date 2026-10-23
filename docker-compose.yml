@@ -1,0 +1,47 @@
+# Full production stack: the relay plus Caddy for automatic HTTPS.
+#
+#   1. cp .env.example .env   and fill in DOMAIN + JWT_SECRET
+#   2. docker compose up -d
+#
+# That is the whole deployment. Caddy fetches the certificate on first start.
+
+services:
+  remotewake:
+    build: .
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      # Required. Generate with:
+      #   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      # Caddy terminates TLS in front, so session cookies get the Secure flag.
+      SECURE_COOKIES: "true"
+      DATA_FILE: /data/store.json
+      # Optional push channel. Uncomment together with the volume line below.
+      # FCM_SERVICE_ACCOUNT_FILE: /run/secrets/firebase.json
+    volumes:
+      - remotewake-data:/data
+      # - ./server/firebase-service-account.json:/run/secrets/firebase.json:ro
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - remotewake
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  remotewake-data:
+  caddy-data:
+  caddy-config:

@@ -143,6 +143,19 @@ function sendConfig(device) {
   }
 }
 
+// --- health ----------------------------------------------------------------
+
+// Used by the Docker HEALTHCHECK and by hosting platforms. Deliberately public
+// and free of any secret: it says the process is up, nothing more.
+app.get('/api/health', (req, res) => {
+  res.json({
+    ok: true,
+    devicesOnline: liveDevices.size,
+    pushEnabled: fcm.enabled,
+    uptimeSeconds: Math.round(process.uptime()),
+  });
+});
+
 // --- auth routes -----------------------------------------------------------
 
 app.post('/api/auth/register', async (req, res) => {

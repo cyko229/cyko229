@@ -1,0 +1,19 @@
+# Caddy terminates TLS and proxies to the relay. It obtains and renews a
+# Let's Encrypt certificate on its own — nothing to do beyond pointing your
+# domain's A/AAAA record at this machine.
+#
+# TLS is not optional here: without it the device token would travel in clear,
+# and browsers refuse to install a PWA over plain HTTP.
+#
+# DOMAIN comes from the .env file next to docker-compose.yml.
+{$DOMAIN} {
+	encode zstd gzip
+
+	# reverse_proxy passes WebSocket upgrades through as-is, which is what the
+	# phones' /device connection needs.
+	reverse_proxy remotewake:8080
+
+	log {
+		output stdout
+	}
+}

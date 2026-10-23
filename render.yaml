@@ -1,0 +1,48 @@
+# Render blueprint — the one-click path.
+#
+# On render.com: New > Blueprint > pick this repository. Render reads this file,
+# creates the service, generates the JWT secret and attaches the disk itself.
+#
+# Note the plan: RemoteWake needs an always-on process. On Render's free tier a
+# web service is put to sleep after ~15 min of inactivity, which drops the
+# phones' WebSocket — exactly what this project must not do. "starter" is the
+# cheapest plan that stays awake, and a disk requires a paid plan anyway.
+
+services:
+  - type: web
+    name: remotewake
+    runtime: node
+    plan: starter
+    region: frankfurt # or oregon / singapore / ohio / virginia
+    rootDir: server
+    buildCommand: npm install --omit=dev --no-audit --no-fund
+    startCommand: node src/index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+
+    # Pairings and device tokens are kept in a JSON file, so the service needs
+    # real storage: without the disk every redeploy would unpair your phones.
+    disk:
+      name: remotewake-data
+      mountPath: /var/data
+      sizeGB: 1
+
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Render generates a long random value and keeps it across deploys.
+      - key: JWT_SECRET
+        generateValue: true
+      # Render serves every service over HTTPS, so the session cookie is Secure.
+      - key: SECURE_COOKIES
+        value: "true"
+      - key: DATA_FILE
+        value: /var/data/store.json
+      # Optional push channel — paste the Firebase service-account fields in the
+      # Render dashboard (Environment), they are secrets and do not belong here.
+      # - key: FCM_PROJECT_ID
+      #   sync: false
+      # - key: FCM_CLIENT_EMAIL
+      #   sync: false
+      # - key: FCM_PRIVATE_KEY
+      #   sync: false

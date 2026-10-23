@@ -4,6 +4,9 @@ server/.env
 server/data/
 server/firebase-service-account.json
 
+# Deployment secrets (docker compose reads .env next to docker-compose.yml)
+.env
+
 # Android / Gradle
 android/.gradle/
 android/build/

@@ -9,7 +9,7 @@ Elle se compose de trois parties :
 | `server/` | Serveur relais Node.js (authentification, association des appareils, envoi des commandes, push FCM). |
 | `web/` | Application web **installable (PWA)** : connexion, liste des appareils, boutons **Allumer l'écran** / **Verrouiller**, chronomètre de maintien de l'écran. |
 | `android/` | Application Android (Kotlin) à installer sur le téléphone. |
-| `docs/` | Étude des possibilités et limites d'Android — **à lire en premier**. |
+| `docs/` | Étude des possibilités et limites d'Android — **à lire en premier** — et le guide de déploiement. |
 
 > ℹ️ **Important — ce que ça fait et ne fait pas.** On allume *l'écran* d'un téléphone **allumé mais verrouillé / en veille**. On **ne peut pas** démarrer un appareil totalement éteint (aucune limite logicielle ne peut contourner ça), ni déverrouiller le code. Voir [`docs/android-capabilities.md`](docs/android-capabilities.md).
 
@@ -98,9 +98,23 @@ npm run test:e2e    # scénario complet : il faut d'abord lancer `npm start` dan
 
 Le test e2e simule un téléphone (WebSocket) et un client web : inscription → association → réglage de la durée de maintien → commande `wake` signée → accusé de réception, plus l'enregistrement du jeton push, les cas d'auth, de propriété, de durée hors bornes et de jeton invalide.
 
+## Déploiement
+
+Tout est fourni : [`render.yaml`](render.yaml) pour un déploiement en un clic, [`Dockerfile`](Dockerfile) + [`docker-compose.yml`](docker-compose.yml) + [`Caddyfile`](Caddyfile) pour votre propre serveur (HTTPS automatique).
+
+```bash
+# Sur votre serveur, avec un domaine qui pointe dessus :
+cp .env.example .env     # DOMAIN + JWT_SECRET
+docker compose up -d
+```
+
+Procédure complète, sauvegardes et mises à jour : **[`docs/deploiement.md`](docs/deploiement.md)**.
+
+> ⚠️ RemoteWake a besoin d'un **process Node permanent** (les téléphones gardent un WebSocket ouvert) et de **HTTPS**. Les hébergements serverless — Netlify Functions, Vercel, Cloudflare Workers — ne conviennent donc pas.
+
 ## Mise en production & sécurité
 
-- **Servez tout en HTTPS/WSS** (TLS). Placez le serveur Node derrière un reverse-proxy (Caddy, Nginx) ou une plateforme qui termine le TLS. Sans TLS, le jeton de l'appareil circulerait en clair.
+- **Servez tout en HTTPS/WSS** (TLS). Placez le serveur Node derrière un reverse-proxy (Caddy, Nginx) ou une plateforme qui termine le TLS. Sans TLS, le jeton de l'appareil circulerait en clair. Le `docker-compose.yml` fourni s'en charge via Caddy.
 - Mettez un `JWT_SECRET` long et aléatoire, et `SECURE_COOKIES=true`.
 - Pour une fiabilité maximale en veille profonde, configurez **Firebase Cloud Messaging** (§5 ci-dessus). Le WebSocket seul fonctionne sans configuration mais dépend de l'exemption de batterie.
 - **L'installation de la PWA exige HTTPS.** Une fois le TLS en place, l'application web devient installable sans rien d'autre à faire.

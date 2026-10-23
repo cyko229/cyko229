@@ -1,0 +1,15 @@
+.git
+.gitignore
+**/node_modules
+server/data
+server/.env
+server/firebase-service-account.json
+server/test
+android
+docs
+*.md
+Dockerfile
+.dockerignore
+docker-compose.yml
+Caddyfile
+render.yaml
