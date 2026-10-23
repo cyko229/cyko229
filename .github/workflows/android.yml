@@ -41,9 +41,31 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      # Pushing a tag like v1.0 also puts the APK on the Releases page, where it
-      # has a stable link you can open straight from the phone.
-      - name: Joindre l'APK à la release
+      # Keeps a "latest" release up to date on every push to master, so the APK
+      # always has a stable address you can open straight from the phone:
+      #   https://github.com/cyko229/cyko229/releases/latest
+      # An artifact, by contrast, needs a desktop login and expires after 90 days.
+      - name: Mettre à jour la release « latest »
+        if: github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: RemoteWake — dernier build
+          body: |
+            APK compilé automatiquement depuis `master`
+            (commit ${{ github.sha }}).
+
+            **Installation :** ouvrez cette page *depuis le téléphone*,
+            téléchargez le `.apk` et installez-le. Android demandera
+            d'autoriser les « sources inconnues » pour le navigateur.
+
+            Il s'agit d'un build *debug*, signé avec la clé de debug
+            d'Android : parfait pour un usage personnel, mais non
+            publiable sur le Play Store en l'état.
+          files: android/app/build/outputs/apk/debug/*.apk
+
+      # Pushing a tag like v1.0 also makes a numbered, permanent release.
+      - name: Publier la release de version
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:

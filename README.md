@@ -84,13 +84,21 @@ L'appareil s'affiche alors « Veille — joignable par push » dans l'applicatio
 
 ## Récupérer l'app Android
 
-**Sans rien installer :** GitHub compile l'APK à chaque push. Onglet **Actions** → dernier run **« APK Android »** → section **Artifacts** → téléchargez `remotewake-debug-apk`. Décompressez, transférez le `.apk` sur le téléphone et installez-le (il faudra autoriser les « sources inconnues »).
+**Sans rien installer, et directement depuis le téléphone :**
 
-Pour un lien stable, ouvrable directement depuis le téléphone, poussez un tag : l'APK est alors joint à la page **Releases**.
+### 📲 **[github.com/cyko229/cyko229/releases/latest](https://github.com/cyko229/cyko229/releases/latest)**
+
+GitHub recompile l'APK à chaque push et met cette page à jour. Ouvrez-la sur le téléphone, téléchargez le `.apk`, installez-le — Android demandera d'autoriser les « sources inconnues » pour votre navigateur.
+
+> C'est un build *debug*, signé avec la clé de debug d'Android : parfait pour un usage personnel, mais non publiable sur le Play Store en l'état.
+
+Pour une version numérotée et figée, poussez un tag :
 
 ```bash
 git tag v1.0 && git push origin v1.0
 ```
+
+L'APK est aussi disponible en artefact dans l'onglet **Actions** (90 jours, nécessite d'être connecté sur un ordinateur).
 
 **Compiler vous-même :** ouvrez le dossier `android/` dans **Android Studio**, ou `cd android && ./gradlew assembleDebug`. Il faut un accès réseau à `google()` / `mavenCentral()` pour télécharger les dépendances. `minSdk = 27` (Android 8.1+).
 
