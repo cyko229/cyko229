@@ -71,13 +71,24 @@ $is_code = 'code' === $v['step'];
 				</label>
 				<label class="mla-field">
 					<span>Mot de passe</span>
+					<span class="mla-pass-wrap">
 					<input type="password" name="password" minlength="8" autocomplete="new-password" required placeholder="8 caractères minimum" data-mla-pass>
+					<button type="button" class="mla-eye" data-mla-eye aria-label="Afficher le mot de passe" aria-pressed="false">
+						<svg class="mla-eye__show" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+						<svg class="mla-eye__hide" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.5 4.5-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</button>
+					</span>
 				</label>
 				<label class="mla-field">
 					<span>Confirmer le mot de passe</span>
+					<span class="mla-pass-wrap">
 					<input type="password" name="password2" minlength="8" autocomplete="new-password" required data-mla-pass2>
+					<button type="button" class="mla-eye" data-mla-eye aria-label="Afficher le mot de passe" aria-pressed="false">
+						<svg class="mla-eye__show" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+						<svg class="mla-eye__hide" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.5 4.5-1.2M9.9 9.9a3 3 0 0 0 4.2 4.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</button>
+					</span>
 				</label>
-				<label class="mla-show"><input type="checkbox" data-mla-show> Afficher les mots de passe</label>
 				<button type="submit" class="mla-btn mla-btn--block">Recevoir mon code par e-mail</button>
 			</form>
 			<p class="mla-activation__alt">Vous avez déjà un mot de passe ? <a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">Se connecter</a></p>
@@ -102,12 +113,18 @@ $is_code = 'code' === $v['step'];
 </main>
 <script>
 (function () {
-	var show = document.querySelector('[data-mla-show]');
-	if (show) {
-		show.addEventListener('change', function () {
-			document.querySelectorAll('[data-mla-pass],[data-mla-pass2]').forEach(function (i) { i.type = show.checked ? 'text' : 'password'; });
+	// L'œil affiche ou masque le mot de passe de son champ.
+	document.querySelectorAll('[data-mla-eye]').forEach(function (btn) {
+		btn.addEventListener('click', function () {
+			var input = btn.parentNode.querySelector('input');
+			var visible = input.type === 'password';
+			input.type = visible ? 'text' : 'password';
+			btn.classList.toggle('is-visible', visible);
+			btn.setAttribute('aria-pressed', visible ? 'true' : 'false');
+			btn.setAttribute('aria-label', visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+			input.focus();
 		});
-	}
+	});
 	var p2 = document.querySelector('[data-mla-pass2]');
 	if (p2) {
 		p2.addEventListener('input', function () {
