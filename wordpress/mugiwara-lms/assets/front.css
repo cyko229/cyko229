@@ -262,4 +262,4 @@ body .mla .mla-field input.mla-code{font-size:30px;font-weight:800;letter-spacin
 .mla-activation__alt,.mla-activation__resend{margin:18px 0 0;text-align:center;font-size:14px;color:var(--mla-muted)}
 .mla-link{border:0;background:none;padding:0;font:inherit;font-weight:700;color:var(--mla-accent);cursor:pointer;text-decoration:underline}
 .mla-login-activate{margin:14px 0 0;font-size:14px}
-@media (max-width:420px){.mla-steps li{justify-content:center}.mla-steps li:not(.is-current){font-size:0;flex:0 0 auto}.mla-steps li:not(.is-current) span{font-size:11px}}
+@media (max-width:520px){.mla-steps li{justify-content:center}.mla-steps li:not(.is-current){font-size:0;flex:0 0 auto}.mla-steps li:not(.is-current) span{font-size:11px}}

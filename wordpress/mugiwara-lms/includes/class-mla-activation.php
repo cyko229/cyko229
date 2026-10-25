@@ -143,17 +143,29 @@ class MLA_Activation {
 		}
 
 		self::$view = $view;
-		wp_enqueue_style( 'mla-front' );
-		add_filter( 'body_class', function ( $c ) { $c[] = 'mla-activation-page'; return $c; } );
-		add_filter( 'pre_get_document_title', function () { return 'Activer mon compte – ' . get_bloginfo( 'name' ); } );
 
+		// Page virtuelle traitée comme une vraie page, rendue au moment normal (template_include) :
+		// Elementor prépare alors l'en-tête et le pied du site comme partout ailleurs.
+		global $wp_query;
+		$wp_query->is_404      = false;
+		$wp_query->is_home     = false;
+		$wp_query->is_page     = true;
+		$wp_query->is_singular = true;
 		status_header( 200 );
-		get_header();
+
+		add_action( 'wp_enqueue_scripts', function () { wp_enqueue_style( 'mla-front' ); } );
+		add_filter( 'body_class', function ( $c ) { return array_diff( array_merge( $c, array( 'mla-activation-page', 'page' ) ), array( 'blog', 'error404' ) ); } );
+		add_filter( 'pre_get_document_title', function () { return 'Activer mon compte – ' . get_bloginfo( 'name' ); } );
+		add_filter( 'template_include', function () { return MLA_DIR . 'templates/activation-page.php'; }, 99 );
+	}
+
+	/**
+	 * Contenu de la page, appelé par templates/activation-page.php.
+	 */
+	public static function render() {
 		$file = locate_template( 'mugiwara-lms/activation.php' ) ?: MLA_DIR . 'templates/activation.php';
 		$v    = self::$view;
 		include $file;
-		get_footer();
-		exit;
 	}
 
 	private static function safe_redirect( $url ) {
