@@ -18,3 +18,4 @@ android/app/google-services.json
 
 # OS
 .DS_Store
+wordpress/dist/

@@ -1,0 +1,167 @@
+/* Mugiwara LMS — espace élève. Reprend les couleurs du thème Mugiwara Academy. */
+.mla{
+	--mla-ink:var(--mg-ink,#0E1024);
+	--mla-muted:var(--mg-muted,#4A4F63);
+	--mla-line:var(--mg-line,#E6E8F0);
+	--mla-soft:var(--mg-soft,#F5F6FA);
+	--mla-lime:var(--mg-lime,#C9F26B);
+	--mla-r:20px;
+	color:var(--mla-ink);
+	font-family:inherit;
+}
+.mla *,.mla *::before,.mla *::after{box-sizing:border-box}
+.mla h2,.mla h3{margin:0;letter-spacing:-.02em}
+.mla-muted{color:var(--mla-muted)}
+.mla-eyebrow{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mla-accent)}
+
+/* Boutons */
+.mla-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:99px;background:var(--mla-accent);color:#fff!important;font:inherit;font-weight:700;font-size:15px;line-height:1.2;padding:12px 22px;cursor:pointer;text-decoration:none!important;transition:filter .15s,background .15s,transform .1s;white-space:nowrap}
+.mla-btn:hover{filter:brightness(.9)}
+.mla-btn:active{transform:translateY(1px)}
+.mla-btn--block{width:100%}
+.mla-btn--ghost{background:#fff;color:var(--mla-ink,#0E1024)!important;box-shadow:inset 0 0 0 1.5px var(--mla-line,#E6E8F0)}
+.mla-btn--ghost:hover{filter:none;box-shadow:inset 0 0 0 1.5px var(--mla-ink,#0E1024)}
+.mla-btn[hidden]{display:none}
+
+/* Barre de progression */
+.mla-bar{position:relative;flex:1;height:8px;border-radius:99px;background:var(--mla-line);overflow:hidden}
+.mla-bar>span{position:absolute;inset:0 auto 0 0;border-radius:inherit;background:var(--mla-accent);transition:width .4s ease}
+.mla-progress{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:var(--mla-muted);margin:14px 0 16px}
+
+/* ---------------- Tableau de bord ---------------- */
+.mla-hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;padding:28px;border-radius:var(--mla-r);background:var(--mla-ink);color:#fff;margin-bottom:20px;background-image:radial-gradient(circle at 100% 0,rgba(30,77,240,.55),transparent 55%)}
+.mla-hero__hello{margin:0 0 4px;opacity:.8}
+.mla-hero__title{font-size:clamp(26px,3.5vw,36px);font-weight:800;color:#fff}
+.mla-stats{display:flex;gap:10px;list-style:none;margin:0;padding:0;flex-wrap:wrap}
+.mla-stats li{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px 16px;min-width:110px}
+.mla-stats strong{display:block;font-size:22px;line-height:1.1;color:var(--mla-lime)}
+.mla-stats span{font-size:12px;opacity:.8}
+
+.mla-resume{display:flex;align-items:center;gap:16px;padding:14px;border-radius:var(--mla-r);background:var(--mla-soft);border:1px solid var(--mla-line);margin-bottom:24px;color:inherit!important;text-decoration:none!important;transition:border-color .15s}
+.mla-resume:hover{border-color:var(--mla-accent)}
+.mla-resume img{width:84px;height:84px;object-fit:cover;border-radius:14px;flex:none}
+.mla-resume__body{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.mla-resume__body strong{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.mla-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:18px}
+.mla-search{flex:1;min-width:220px;max-width:380px;border:1.5px solid var(--mla-line);border-radius:99px;padding:11px 18px;font:inherit;background:#fff}
+.mla-search:focus{outline:none;border-color:var(--mla-accent)}
+.mla-filters{display:flex;gap:6px;flex-wrap:wrap}
+.mla-filters button{border:0;border-radius:99px;padding:9px 14px;font:inherit;font-size:14px;font-weight:600;background:var(--mla-soft);color:var(--mla-muted);cursor:pointer}
+.mla-filters button.is-active{background:var(--mla-ink);color:#fff}
+
+.mla-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.mla-card{display:flex;flex-direction:column;border:1px solid var(--mla-line);border-radius:var(--mla-r);background:#fff;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.mla-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(14,16,36,.1)}
+.mla-card[hidden]{display:none}
+.mla-card__media{position:relative;display:block;aspect-ratio:16/10;background:var(--mla-soft)}
+.mla-card__media img{width:100%;height:100%;object-fit:cover;display:block}
+.mla-card__placeholder{display:grid;place-items:center;height:100%;font-size:44px}
+.mla-badge{position:absolute;top:12px;left:12px;background:var(--mla-lime);color:#1F3300;font-size:12px;font-weight:800;padding:5px 10px;border-radius:99px}
+.mla-badge--done{background:var(--mla-ink);color:#fff}
+.mla-card__body{display:flex;flex-direction:column;flex:1;padding:16px 18px 18px}
+.mla-card__title{font-size:17px;line-height:1.3;font-weight:800}
+.mla-card__title a{color:inherit!important;text-decoration:none!important}
+.mla-card__meta{margin:6px 0 0;font-size:13px;color:var(--mla-muted)}
+.mla-card .mla-btn--block{margin-top:auto}
+.mla-noresult{text-align:center;color:var(--mla-muted);padding:30px 0}
+
+.mla-empty{text-align:center;padding:48px 24px;border:1.5px dashed var(--mla-line);border-radius:var(--mla-r)}
+.mla-empty__icon{font-size:44px;margin-bottom:8px}
+.mla-empty p{color:var(--mla-muted);max-width:440px;margin:8px auto 20px}
+
+/* ---------------- Lecteur ---------------- */
+/* Le lecteur occupe toute la largeur : on masque la navigation de Mon compte. */
+.mla-player-page .woocommerce-MyAccount-navigation{display:none}
+.mla-player-page .woocommerce-MyAccount-content{width:100%!important;float:none!important;max-width:none}
+
+.mla-player__top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-bottom:18px}
+.mla-back{font-weight:700;color:var(--mla-muted)!important;text-decoration:none!important}
+.mla-back:hover{color:var(--mla-accent)!important}
+.mla-player__title{flex:1 1 260px;font-size:clamp(20px,2.6vw,28px);font-weight:800}
+.mla-player__progress{display:flex;align-items:center;gap:10px;flex:0 1 280px;font-size:13px;font-weight:700;color:var(--mla-muted);white-space:nowrap}
+.mla-toggle-outline{display:none}
+
+.mla-player__layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start}
+.mla-stage{min-width:0}
+
+.mla-viewer{position:relative;width:100%;aspect-ratio:16/9;border-radius:var(--mla-r);overflow:hidden;background:#000}
+.mla-viewer--pdf,.mla-viewer--document,.mla-viewer--folder,.mla-viewer--image,.mla-viewer--archive{aspect-ratio:auto;height:min(78vh,820px);background:var(--mla-soft);border:1px solid var(--mla-line)}
+.mla-viewer--audio{aspect-ratio:auto;height:160px}
+.mla-viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.mla-viewer__fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--mla-muted);background:var(--mla-soft)}
+
+.mla-lesson-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:14px;margin:20px 0 6px}
+.mla-lesson-title{font-size:clamp(19px,2.2vw,24px);font-weight:800;margin:4px 0 2px!important}
+.mla-lesson-duration{font-size:13px;color:var(--mla-muted)}
+.mla-lesson-actions{display:flex;gap:8px;flex-wrap:wrap}
+.mla-done-btn.is-done{background:var(--mla-lime);color:#1F3300!important}
+
+.mla-pager{display:flex;justify-content:space-between;gap:12px;margin:10px 0 22px}
+.mla-pager a{font-weight:700;text-decoration:none!important;color:var(--mla-ink)!important;padding:8px 0}
+.mla-pager a:hover{color:var(--mla-accent)!important}
+.mla-pager__next{margin-left:auto}
+.mla-pager a[hidden]{display:none}
+
+.mla-tabs{display:flex;gap:4px;border-bottom:1.5px solid var(--mla-line);margin-bottom:16px;overflow-x:auto}
+.mla-tabs button{border:0;background:none;font:inherit;font-weight:700;color:var(--mla-muted);padding:12px 14px;margin-bottom:-1.5px;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap}
+.mla-tabs button.is-active{color:var(--mla-ink);border-bottom-color:var(--mla-accent)}
+.mla-pill{display:inline-block;min-width:22px;padding:1px 7px;border-radius:99px;background:var(--mla-soft);font-size:12px}
+.mla-panel{line-height:1.65}
+
+.mla-resources{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.mla-resources li{display:flex;align-items:center;gap:14px;padding:12px 14px;border:1px solid var(--mla-line);border-radius:16px}
+.mla-resources li>div{flex:1;min-width:0}
+.mla-resources small{display:block;color:var(--mla-muted)}
+.mla-resources__icon{font-size:22px}
+.mla-download-all{margin-top:18px}
+
+/* Sommaire */
+.mla-outline{position:sticky;top:24px;max-height:calc(100vh - 48px);overflow:auto;border:1px solid var(--mla-line);border-radius:var(--mla-r);background:#fff}
+.mla-outline__head{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;padding:16px 18px;background:#fff;border-bottom:1px solid var(--mla-line)}
+.mla-outline__close{display:none;border:0;background:none;font-size:18px;cursor:pointer}
+.mla-module{border-bottom:1px solid var(--mla-line)}
+.mla-module:last-child{border-bottom:0}
+.mla-module summary{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer;list-style:none;font-weight:700}
+.mla-module summary::-webkit-details-marker{display:none}
+.mla-module summary::after{content:'▾';margin-left:4px;color:var(--mla-muted);transition:transform .2s}
+.mla-module:not([open]) summary::after{transform:rotate(-90deg)}
+.mla-module__index{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:var(--mla-soft);font-size:13px}
+.mla-module__title{flex:1;min-width:0;line-height:1.3}
+.mla-module__count{font-size:12px;color:var(--mla-muted);font-weight:600}
+.mla-lessons{list-style:none;margin:0;padding:0 8px 10px}
+.mla-lesson{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;color:var(--mla-ink)!important;text-decoration:none!important;font-size:14px;line-height:1.35}
+.mla-lesson:hover{background:var(--mla-soft)}
+.mla-lesson.is-current{background:color-mix(in srgb,var(--mla-accent) 10%,#fff);box-shadow:inset 3px 0 0 var(--mla-accent);font-weight:700}
+.mla-lesson__check{flex:none;width:18px;height:18px;border-radius:50%;border:2px solid var(--mla-line);display:grid;place-items:center;font-size:11px;color:#1F3300}
+.mla-lesson.is-done .mla-lesson__check{background:var(--mla-lime);border-color:var(--mla-lime)}
+.mla-lesson.is-done .mla-lesson__check::after{content:'✓';font-weight:900}
+.mla-lesson__icon{flex:none;width:18px;text-align:center;font-size:13px;opacity:.75}
+.mla-lesson__title{flex:1;min-width:0}
+.mla-lesson__duration{font-size:12px;color:var(--mla-muted)}
+
+/* Mobile : le sommaire devient un panneau latéral */
+@media (max-width: 960px){
+	.mla-player__layout{grid-template-columns:1fr}
+	.mla-toggle-outline{display:inline-flex}
+	.mla-outline{position:fixed;top:0;right:0;bottom:0;z-index:99999;width:min(92vw,380px);max-height:none;border-radius:0;transform:translateX(105%);visibility:hidden;transition:transform .25s ease,visibility 0s .25s}
+	.mla-outline-open .mla-outline{transform:none;visibility:visible;transition:transform .25s ease;box-shadow:-20px 0 40px rgba(14,16,36,.2)}
+	.mla-outline__close{display:block}
+	.mla-outline-open::after{content:'';position:fixed;inset:0;z-index:99998;background:rgba(14,16,36,.45)}
+	.mla-viewer{border-radius:14px}
+	.mla-viewer--pdf,.mla-viewer--document,.mla-viewer--folder,.mla-viewer--image,.mla-viewer--archive{height:70vh}
+}
+@media (max-width: 600px){
+	.mla-hero{padding:22px}
+	.mla-stats li{min-width:0;flex:1}
+	.mla-player__progress{flex-basis:100%}
+	.mla-lesson-actions{width:100%}
+	.mla-lesson-actions .mla-btn{flex:1}
+}
+
+/* Pages produit, remerciement, connexion */
+.mla-owned{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin:16px 0;padding:14px 16px;border-radius:16px;background:var(--mg-soft,#F5F6FA);border:1px solid var(--mg-line,#E6E8F0);font-weight:700}
+.mla-thankyou{margin:0 0 28px;padding:26px;border-radius:20px;background:var(--mg-soft,#F5F6FA);border:1px solid var(--mg-line,#E6E8F0)}
+.mla-thankyou h2{margin:0 0 8px}
+.mla-thankyou__list{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.mla-login-cta{text-align:center;padding:32px;border-radius:20px;background:var(--mg-soft,#F5F6FA)}
