@@ -16,7 +16,9 @@
 .mla .mla-hero .mla-hero__hello{color:#fff;margin:0 0 4px}
 .mla .mla-empty h3{margin:0 0 4px}
 .mla .mla-empty p{margin:8px auto 22px}
-.mla .mla-card .mla-card__title{margin:0}
+.mla .mla-card .mla-card__title{margin:0;font-weight:800}
+.mla .mla-card .mla-card__title a{font-weight:inherit}
+.mla .mla-player__title,.mla .mla-lesson-title{font-weight:800}
 .mla .mla-card .mla-card__meta{margin:6px 0 0}
 .mla-muted{color:var(--mla-muted)}
 .mla-eyebrow{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mla-accent)}
@@ -26,8 +28,8 @@
 .mla-btn:hover{filter:brightness(.9)}
 .mla-btn:active{transform:translateY(1px)}
 .mla-btn--block{width:100%}
-.mla-btn--ghost{background:#fff;color:var(--mla-ink,#0E1024)!important;box-shadow:inset 0 0 0 1.5px var(--mla-line,#E6E8F0)}
-.mla-btn--ghost:hover{filter:none;box-shadow:inset 0 0 0 1.5px var(--mla-ink,#0E1024)}
+.mla-btn--ghost{background:#fff;color:var(--mla-ink,#0E1024)!important;border:1.5px solid var(--mla-line,#E6E8F0)!important}
+.mla-btn--ghost:hover{filter:none;border-color:var(--mla-ink,#0E1024)!important}
 .mla-btn[hidden]{display:none}
 
 /* Barre de progression */
@@ -79,8 +81,9 @@
 
 /* ---------------- Lecteur ---------------- */
 /* Le lecteur occupe toute la largeur : on masque la navigation de Mon compte. */
-.mla-player-page .woocommerce-MyAccount-navigation{display:none}
-.mla-player-page .woocommerce-MyAccount-content{width:100%!important;float:none!important;max-width:none}
+.mla-player-page .woocommerce-MyAccount-navigation{display:none!important}
+.mla-player-page .woocommerce-MyAccount-content,
+.mla-player-page .woocommerce-MyAccount-content-wrapper{width:100%!important;max-width:none!important;float:none!important;flex:1 1 100%!important;margin-left:0!important}
 
 .mla-player__top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-bottom:18px}
 .mla-back{font-weight:700;color:var(--mla-muted)!important;text-decoration:none!important}
