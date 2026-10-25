@@ -11,6 +11,13 @@
 }
 .mla *,.mla *::before,.mla *::after{box-sizing:border-box}
 .mla h2,.mla h3{margin:0;letter-spacing:-.02em}
+/* Sélecteurs renforcés : les thèmes (Elementor) imposent couleur et marges des titres et paragraphes. */
+.mla .mla-hero .mla-hero__title{color:#fff;margin:0}
+.mla .mla-hero .mla-hero__hello{color:#fff;margin:0 0 4px}
+.mla .mla-empty h3{margin:0 0 4px}
+.mla .mla-empty p{margin:8px auto 22px}
+.mla .mla-card .mla-card__title{margin:0}
+.mla .mla-card .mla-card__meta{margin:6px 0 0}
 .mla-muted{color:var(--mla-muted)}
 .mla-eyebrow{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mla-accent)}
 

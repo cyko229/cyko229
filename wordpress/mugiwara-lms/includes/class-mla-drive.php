@@ -205,7 +205,7 @@ class MLA_Drive {
 		}
 		$html = wp_remote_retrieve_body( $response );
 		if ( 200 !== wp_remote_retrieve_response_code( $response ) || false === strpos( $html, 'flip-entry' ) && false === strpos( $html, 'folder-view' ) ) {
-			return new WP_Error( 'mla_drive', 'Dossier Drive illisible : vérifiez qu’il est partagé en « Tous les utilisateurs disposant du lien ».' );
+			return new WP_Error( 'mla_drive', 'Dossier Drive illisible (code ' . (int) wp_remote_retrieve_response_code( $response ) . ') : vérifiez qu’il est partagé en « Tous les utilisateurs disposant du lien ».' );
 		}
 
 		$doc = new DOMDocument();
@@ -363,7 +363,7 @@ class MLA_Drive {
 		);
 		$intro = array();
 
-		foreach ( $root as $item ) {
+		foreach ( self::without_copies( $root ) as $item ) {
 			if ( self::FOLDER_MIME !== $item['mimeType'] ) {
 				$intro[] = self::lesson_from_file( $item );
 				continue;
@@ -386,7 +386,7 @@ class MLA_Drive {
 			$structure['modules'][] = array(
 				'id'      => self::uid(),
 				'title'   => self::clean_title( $item['name'] ),
-				'lessons' => array_map( array( __CLASS__, 'lesson_from_file' ), $children ),
+				'lessons' => array_map( array( __CLASS__, 'lesson_from_file' ), self::without_copies( $children ) ),
 			);
 		}
 
@@ -401,6 +401,22 @@ class MLA_Drive {
 			);
 		}
 		return $structure;
+	}
+
+	/**
+	 * Retire les doublons « Nom (1).mp4 » quand « Nom.mp4 » existe dans le même dossier.
+	 */
+	private static function without_copies( $files ) {
+		$names = array_flip( wp_list_pluck( $files, 'name' ) );
+		return array_values(
+			array_filter(
+				$files,
+				function ( $file ) use ( $names ) {
+					$original = preg_replace( '~\s*\(\d+\)(\.[a-z0-9]{2,4})?$~i', '$1', $file['name'] );
+					return $original === $file['name'] || ! isset( $names[ $original ] );
+				}
+			)
+		);
 	}
 
 	private static function lesson_from_file( $file ) {
@@ -443,10 +459,17 @@ class MLA_Drive {
 	 * « 01 - Les bases.mp4 » devient « Les bases ».
 	 */
 	public static function clean_title( $name ) {
-		$title = preg_replace( '~\.[a-z0-9]{2,4}$~i', '', $name );
+		// Espaces insécables et caractères invisibles que Drive glisse parfois dans les noms.
+		$title = trim( preg_replace( '~[\x{00A0}\x{2000}-\x{200F}\x{202F}\x{FEFF}]+~u', ' ', (string) $name ) );
+		$title = preg_replace( '~\.[a-z0-9]{2,4}$~i', '', $title );
 		$title = preg_replace( '~^\s*\d+\s*[\.\-_)]+\s*~', '', $title );
-		$title = trim( str_replace( '_', ' ', $title ) );
-		return '' === $title ? $name : $title;
+		// « Comment-filtrer-linformation » devient « Comment filtrer linformation ».
+		$title = preg_replace( '~\s+~', ' ', str_replace( array( '_', '-' ), ' ', $title ) );
+		$title = trim( $title );
+		if ( '' === $title ) {
+			return trim( (string) $name );
+		}
+		return function_exists( 'mb_strtoupper' ) ? mb_strtoupper( mb_substr( $title, 0, 1 ) ) . mb_substr( $title, 1 ) : ucfirst( $title );
 	}
 
 	public static function uid() {

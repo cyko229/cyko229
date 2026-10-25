@@ -16,7 +16,8 @@ class MLA_Frontend {
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'add_endpoints' ) );
 		add_filter( 'woocommerce_get_query_vars', array( __CLASS__, 'query_vars' ) );
-		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'menu_items' ) );
+		// Priorité tardive : certains thèmes reconstruisent le menu de Mon compte et effaceraient l'onglet.
+		add_filter( 'woocommerce_account_menu_items', array( __CLASS__, 'menu_items' ), 999 );
 		add_filter( 'woocommerce_endpoint_' . self::EP_LIST . '_title', array( __CLASS__, 'title_list' ) );
 		add_filter( 'woocommerce_endpoint_' . self::EP_COURSE . '_title', array( __CLASS__, 'title_course' ) );
 		add_action( 'woocommerce_account_' . self::EP_LIST . '_endpoint', array( __CLASS__, 'render_dashboard' ) );
