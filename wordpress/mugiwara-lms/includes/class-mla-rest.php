@@ -137,6 +137,19 @@ class MLA_Rest {
 
 		register_rest_route(
 			self::NS,
+			'/mail/diagnostic',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => array( __CLASS__, 'can_configure' ),
+				'args'                => array( 'to' => array( 'type' => 'string', 'format' => 'email' ) ),
+				'callback'            => function ( $request ) {
+					return MLA_Mail::diagnose( $request['to'] ? sanitize_email( $request['to'] ) : '' );
+				},
+			)
+		);
+
+		register_rest_route(
+			self::NS,
 			'/mail/test',
 			array(
 				'methods'             => 'POST',

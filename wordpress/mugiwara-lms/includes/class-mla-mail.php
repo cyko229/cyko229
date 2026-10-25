@@ -179,6 +179,67 @@ class MLA_Mail {
 		);
 	}
 
+	/**
+	 * Diagnostic de délivrabilité : enregistrements DNS anti-spam du domaine expéditeur
+	 * et, si $to est fourni, transcription de l'échange avec le serveur SMTP.
+	 */
+	public static function diagnose( $to = '' ) {
+		$from   = self::from_email( get_option( 'admin_email' ) );
+		$domain = substr( strrchr( $from, '@' ), 1 );
+		$txt    = function ( $host ) {
+			$records = function_exists( 'dns_get_record' ) ? @dns_get_record( $host, DNS_TXT ) : array(); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+			return array_values( array_map( function ( $r ) { return $r['txt'] ?? implode( '', $r['entries'] ?? array() ); }, (array) $records ) );
+		};
+		$spf   = array_values( array_filter( $txt( $domain ), function ( $t ) { return 0 === stripos( $t, 'v=spf1' ); } ) );
+		$dkim  = array();
+		foreach ( array( 'hostingermail1', 'hostingermail2', 'hostingermail3', 'hostingermail-a', 'hostingermail-b', 'hostingermail-c', 'default', 'mail', 'dkim' ) as $selector ) {
+			$found = $txt( $selector . '._domainkey.' . $domain );
+			if ( $found ) {
+				$dkim[ $selector ] = substr( $found[0], 0, 60 ) . '…';
+			}
+			// Les sélecteurs Hostinger sont souvent des CNAME vers leurs serveurs.
+			$cname = function_exists( 'dns_get_record' ) ? @dns_get_record( $selector . '._domainkey.' . $domain, DNS_CNAME ) : array(); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+			if ( $cname ) {
+				$dkim[ $selector ] = 'CNAME → ' . $cname[0]['target'];
+			}
+		}
+		$mx = function_exists( 'dns_get_record' ) ? array_map( function ( $r ) { return $r['target']; }, (array) @dns_get_record( $domain, DNS_MX ) ) : array(); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		$ns = function_exists( 'dns_get_record' ) ? array_map( function ( $r ) { return $r['target']; }, (array) @dns_get_record( $domain, DNS_NS ) ) : array(); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+
+		$result = array(
+			'domain' => $domain,
+			'ns'     => $ns,
+			'mx'     => $mx,
+			'spf'    => $spf,
+			'dkim'   => $dkim,
+			'dmarc'  => $txt( '_dmarc.' . $domain ),
+		);
+
+		if ( $to ) {
+			$log    = array();
+			$tracer = function ( $mailer ) use ( &$log ) {
+				$mailer->SMTPDebug   = 2;
+				$mailer->Debugoutput = function ( $line ) use ( &$log ) {
+					$line = trim( $line );
+					// Jamais le mot de passe ni l'identifiant encodés dans la transcription.
+					if ( '' !== $line && ! preg_match( '~^CLIENT -> SERVER: (?!AUTH LOGIN$|EHLO|MAIL|RCPT|DATA|QUIT|\.$)[A-Za-z0-9+/=]{8,}$~', $line ) && false === stripos( $line, 'AUTH PLAIN' ) ) {
+						$log[] = substr( $line, 0, 200 );
+					}
+				};
+			};
+			add_action( 'phpmailer_init', $tracer, 99 );
+			$sent = wp_mail( $to, 'Diagnostic des e-mails', self::layout( 'Diagnostic des e-mails', '<p>Si vous lisez ce message, l’envoi et la remise fonctionnent.</p>' ), array( 'Content-Type: text/html; charset=UTF-8' ) );
+			remove_action( 'phpmailer_init', $tracer, 99 );
+			// On ne garde que les réponses du serveur et les commandes utiles, sans le corps du message.
+			$result['smtp'] = array(
+				'sent'       => (bool) $sent,
+				'error'      => get_option( self::ERROR_META, '' ),
+				'transcript' => array_values( array_filter( $log, function ( $l ) { return preg_match( '~^(SERVER -> CLIENT|CLIENT -> SERVER: (EHLO|AUTH|MAIL|RCPT|DATA|QUIT))|SMTP~', $l ); } ) ),
+			);
+		}
+		return $result;
+	}
+
 	/* ------------------------------------------------------------------
 	 * Gabarit
 	 * ---------------------------------------------------------------- */
