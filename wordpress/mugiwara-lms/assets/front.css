@@ -18,7 +18,7 @@
 .mla .mla-empty p{margin:8px auto 22px}
 .mla .mla-card .mla-card__title{margin:0;font-weight:800!important}
 .mla .mla-card .mla-card__title a{font-weight:inherit!important;font-family:inherit}
-.mla .mla-player__title,.mla .mla-lesson-title{font-weight:800}
+.mla .mla-player__title,.mla .mla-lesson-title{font-weight:800!important}
 .mla .mla-card .mla-card__meta{margin:6px 0 0}
 .mla-muted{color:var(--mla-muted)}
 .mla-eyebrow{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mla-accent)}
