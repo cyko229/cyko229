@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Mugiwara LMS – Formations Google Drive
  * Description:       Transforme la boutique WooCommerce en plateforme de formation : chaque achat crée un compte et ouvre l'accès à un espace élève (lecteur de leçons, ressources, téléchargements), avec des contenus hébergés sur Google Drive.
- * Version:           1.5.0
+ * Version:           1.6.0
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            Mugiwara Academy
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MLA_VERSION', '1.5.0' );
+define( 'MLA_VERSION', '1.6.0' );
 define( 'MLA_FILE', __FILE__ );
 define( 'MLA_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MLA_URL', plugin_dir_url( __FILE__ ) );
@@ -24,6 +24,7 @@ require_once MLA_DIR . 'includes/class-mla-frontend.php';
 require_once MLA_DIR . 'includes/class-mla-admin.php';
 require_once MLA_DIR . 'includes/class-mla-rest.php';
 require_once MLA_DIR . 'includes/class-mla-mail.php';
+require_once MLA_DIR . 'includes/class-mla-activation.php';
 
 /**
  * Lit un réglage du plugin.
@@ -64,7 +65,20 @@ add_action(
 		MLA_Access::init();
 		MLA_Frontend::init();
 		MLA_Rest::init();
+		MLA_Activation::init();
 	}
+);
+
+// Une mise à jour par téléversement ne relance pas l'activation : on régénère les URL quand la version change.
+add_action(
+	'init',
+	function () {
+		if ( get_option( 'mla_version' ) !== MLA_VERSION ) {
+			flush_rewrite_rules( false );
+			update_option( 'mla_version', MLA_VERSION );
+		}
+	},
+	99
 );
 
 register_activation_hook(
@@ -77,8 +91,8 @@ register_activation_hook(
 		// Un achat doit toujours créer un compte : pas de commande invité.
 		update_option( 'woocommerce_enable_guest_checkout', 'no' );
 		update_option( 'woocommerce_enable_signup_and_login_from_checkout', 'yes' );
-		// Le client choisit son mot de passe à la commande : il peut se reconnecter sans attendre d'e-mail.
-		update_option( 'woocommerce_registration_generate_password', 'no' );
+		// Mot de passe généré à la commande : le client choisit le sien ensuite sur « Activer mon compte ».
+		update_option( 'woocommerce_registration_generate_password', 'yes' );
 		update_option( 'woocommerce_registration_generate_username', 'yes' );
 
 		if ( false === get_option( 'mla_settings' ) ) {

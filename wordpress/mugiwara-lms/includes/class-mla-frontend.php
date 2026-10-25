@@ -427,10 +427,14 @@ class MLA_Frontend {
 		wp_enqueue_style( 'mla-front' );
 		echo '<section class="mla-thankyou">';
 		if ( $order->is_paid() ) {
+			$pending = $order->get_customer_id() && MLA_Activation::needs_activation( $order->get_customer_id() );
 			echo '<h2>🎉 Votre espace formation est prêt</h2>';
-			echo '<p>Votre compte est créé et vos formations sont accessibles dès maintenant. Pour revenir plus tard, connectez-vous dans « Mon compte » avec votre adresse e-mail et le mot de passe choisi lors de la commande.</p><div class="mla-thankyou__list">';
+			echo $pending
+				? '<p>Dernière étape : choisissez votre mot de passe pour accéder à vos formations, aujourd’hui comme plus tard.</p><div class="mla-thankyou__list">'
+				: '<p>Vos formations sont accessibles dès maintenant depuis « Mon compte ».</p><div class="mla-thankyou__list">';
 			foreach ( $courses as $course_id ) {
-				echo '<a class="mla-btn" href="' . esc_url( self::course_url( $course_id ) ) . '">▶ ' . esc_html( get_the_title( $course_id ) ) . '</a>';
+				$url = $pending ? MLA_Activation::url_for_order( $order, self::course_url( $course_id ) ) : self::course_url( $course_id );
+				echo '<a class="mla-btn" href="' . esc_url( $url ) . '">▶ Accéder à « ' . esc_html( get_the_title( $course_id ) ) . ' »</a>';
 			}
 			echo '</div>';
 		} else {
@@ -443,7 +447,7 @@ class MLA_Frontend {
 		if ( $sent_to_admin || ! $order instanceof WC_Order || ! $order->is_paid() || ! MLA_Access::courses_in_order( $order ) ) {
 			return;
 		}
-		$url = self::list_url();
+		$url = $order->get_customer_id() && MLA_Activation::needs_activation( $order->get_customer_id() ) ? MLA_Activation::url_for_order( $order ) : self::list_url();
 		if ( $plain_text ) {
 			echo "\nAccédez à vos formations : " . esc_url_raw( $url ) . "\n\n";
 			return;
@@ -452,7 +456,7 @@ class MLA_Frontend {
 		echo '<div style="margin:26px 0;padding:22px 24px;border-radius:16px;background:' . esc_attr( MLA_Mail::INK ) . ';color:#ffffff;">'
 			. '<p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:' . esc_attr( MLA_Mail::LIME ) . ';">Votre espace formation est prêt</p>'
 			. '<p style="margin:0 0 4px;font-size:17px;font-weight:800;color:#ffffff;">' . esc_html( implode( ' · ', $titles ) ) . '</p>'
-			. '<p style="margin:0 0 16px;font-size:14px;color:#B9BCCB;">Connectez-vous avec votre e-mail et votre mot de passe pour suivre et télécharger vos formations.</p>'
+			. '<p style="margin:0 0 16px;font-size:14px;color:#B9BCCB;">Cliquez ci-dessous : à la première connexion, vous choisirez votre mot de passe, confirmé par un code reçu par e-mail.</p>'
 			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;padding:12px 24px;border-radius:99px;background:' . esc_attr( MLA_Mail::BLUE ) . ';color:#ffffff;text-decoration:none;font-weight:700;">▶ Accéder à mes formations</a>'
 			. '</div>';
 	}

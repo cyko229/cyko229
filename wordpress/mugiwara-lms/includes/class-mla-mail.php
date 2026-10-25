@@ -68,7 +68,8 @@ class MLA_Mail {
 		if ( isset( $input['pass'] ) && '' !== $input['pass'] ) {
 			$new['pass'] = self::encrypt( (string) $input['pass'] );
 		}
-		if ( ! $new['from_email'] && is_email( $new['user'] ) ) {
+		// Sans expéditeur explicite, on envoie depuis la boîte authentifiée (Hostinger refuse un autre expéditeur).
+		if ( is_email( $new['user'] ) && ( empty( $input['from_email'] ) || ! $new['from_email'] ) ) {
 			$new['from_email'] = $new['user'];
 		}
 		update_option( self::OPTION, $new, false );
