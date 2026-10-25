@@ -182,3 +182,7 @@ body .woocommerce-MyAccount-content .mla .mla-hero h2.mla-hero__title,
 body .mla .mla-hero h2.mla-hero__title{color:#fff!important}
 body .mla .mla-empty .mla-btn{margin-top:18px}
 body .mla .mla-empty p{margin-bottom:0}
+/* Elementor force aussi les <strong> en noir dans Mon compte. */
+body .mla .mla-stats li strong{color:var(--mla-lime,#C9F26B)!important}
+body .mla .mla-stats li span{color:#fff!important;opacity:.85}
+body .mla .mla-resume .mla-resume__body strong{color:var(--mla-ink,#0E1024)!important}
