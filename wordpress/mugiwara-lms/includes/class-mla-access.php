@@ -19,7 +19,9 @@ class MLA_Access {
 			add_action( 'woocommerce_order_status_' . $status, array( __CLASS__, 'revoke_order' ) );
 		}
 
-		add_filter( 'woocommerce_is_purchasable', array( __CLASS__, 'block_repurchase' ), 10, 2 );
+		add_filter( 'woocommerce_add_to_cart_validation', array( __CLASS__, 'validate_add_to_cart' ), 10, 2 );
+		add_action( 'woocommerce_cart_loaded_from_session', array( __CLASS__, 'clean_cart' ) );
+		add_filter( 'woocommerce_loop_add_to_cart_link', array( __CLASS__, 'loop_button' ), 10, 2 );
 	}
 
 	/* ------------------------------------------------------------------
@@ -256,13 +258,56 @@ class MLA_Access {
 	}
 
 	/**
-	 * Un élève qui possède déjà toutes les formations d'un produit ne peut pas le racheter.
+	 * Le produit reste achetable (sinon WooCommerce affiche « ne peut plus être acheté ») :
+	 * on oriente plutôt l'élève vers la formation qu'il possède déjà.
 	 */
-	public static function block_repurchase( $purchasable, $product ) {
-		if ( ! $purchasable || 'yes' !== mla_option( 'block_repurchase', 'yes' ) || ! is_user_logged_in() || is_admin() ) {
-			return $purchasable;
+	private static function blocks_repurchase() {
+		return 'yes' === mla_option( 'block_repurchase', 'yes' ) && is_user_logged_in() && ! is_admin();
+	}
+
+	private static function owned_notice( $product_id ) {
+		$courses = self::courses_for_product( $product_id );
+		$url     = 1 === count( $courses ) ? MLA_Frontend::course_url( $courses[0] ) : MLA_Frontend::list_url();
+		return sprintf(
+			'Vous avez déjà accès à « %s ». <a href="%s" class="button wc-forward">Accéder à la formation</a>',
+			esc_html( get_the_title( $product_id ) ),
+			esc_url( $url )
+		);
+	}
+
+	public static function validate_add_to_cart( $passed, $product_id ) {
+		if ( $passed && self::blocks_repurchase() && self::user_owns_product( get_current_user_id(), $product_id ) ) {
+			wc_add_notice( self::owned_notice( $product_id ), 'notice' );
+			return false;
 		}
-		return self::user_owns_product( get_current_user_id(), $product->get_id() ) ? false : $purchasable;
+		return $passed;
+	}
+
+	/**
+	 * Formation ajoutée au panier avant la connexion, puis déjà possédée : retirée avec un message clair.
+	 */
+	public static function clean_cart( $cart ) {
+		if ( ! self::blocks_repurchase() || ! $cart ) {
+			return;
+		}
+		foreach ( $cart->get_cart() as $key => $item ) {
+			if ( self::user_owns_product( get_current_user_id(), $item['product_id'] ) ) {
+				$cart->remove_cart_item( $key );
+				wc_add_notice( self::owned_notice( $item['product_id'] ), 'notice' );
+			}
+		}
+	}
+
+	/**
+	 * Bouton des listes de produits : « Accéder » à la place de « Ajouter au panier ».
+	 */
+	public static function loop_button( $html, $product ) {
+		if ( ! self::blocks_repurchase() || ! self::user_owns_product( get_current_user_id(), $product->get_id() ) ) {
+			return $html;
+		}
+		$courses = self::courses_for_product( $product->get_id() );
+		$url     = 1 === count( $courses ) ? MLA_Frontend::course_url( $courses[0] ) : MLA_Frontend::list_url();
+		return '<a href="' . esc_url( $url ) . '" class="button mla-owned-button">Accéder à la formation</a>';
 	}
 
 	public static function user_owns_product( $user_id, $product_id ) {

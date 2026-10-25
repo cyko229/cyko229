@@ -422,7 +422,7 @@ class MLA_Frontend {
 		echo '<section class="mla-thankyou">';
 		if ( $order->is_paid() ) {
 			echo '<h2>🎉 Votre espace formation est prêt</h2>';
-			echo '<p>Votre compte est créé et vos formations sont accessibles dès maintenant. Vos identifiants vous ont été envoyés par e-mail.</p><div class="mla-thankyou__list">';
+			echo '<p>Votre compte est créé et vos formations sont accessibles dès maintenant. Pour revenir plus tard, connectez-vous dans « Mon compte » avec votre adresse e-mail et le mot de passe choisi lors de la commande.</p><div class="mla-thankyou__list">';
 			foreach ( $courses as $course_id ) {
 				echo '<a class="mla-btn" href="' . esc_url( self::course_url( $course_id ) ) . '">▶ ' . esc_html( get_the_title( $course_id ) ) . '</a>';
 			}
