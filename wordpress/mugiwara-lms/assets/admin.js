@@ -219,9 +219,9 @@
 	var importBtn = root.querySelector('[data-mla-import]');
 	var importUrl = root.querySelector('[data-mla-import-url]');
 	var status = root.querySelector('[data-mla-import-status]');
-	// Entrée dans le champ d'import lance l'import au lieu d'enregistrer l'article.
+	// Ctrl+Entrée dans le champ d'import lance l'import.
 	importUrl.addEventListener('keydown', function (e) {
-		if (e.key === 'Enter') { e.preventDefault(); importBtn.click(); }
+		if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); importBtn.click(); }
 	});
 	importBtn.addEventListener('click', function () {
 		var url = importUrl.value.trim();

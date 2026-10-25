@@ -63,7 +63,6 @@ class MLA_Admin {
 	public static function builder_box( $post ) {
 		wp_nonce_field( 'mla_save_course', 'mla_course_nonce' );
 		$structure = MLA_Courses::structure( $post->ID );
-		$settings  = admin_url( 'edit.php?post_type=' . MLA_Courses::POST_TYPE . '&page=mla-settings' );
 		?>
 		<div class="mla-admin" data-mla-builder>
 			<input type="hidden" name="mla_structure" value="<?php echo esc_attr( wp_json_encode( $structure ) ); ?>" data-mla-structure>
@@ -71,14 +70,11 @@ class MLA_Admin {
 			<div class="mla-admin__import">
 				<h4>⚡ Importer depuis Google Drive</h4>
 				<p class="description">
-					Collez le lien d’un dossier Drive partagé en « Tous les utilisateurs disposant du lien ». Chaque sous-dossier devient un module, chaque fichier une leçon ;
-					un sous-dossier « Ressources » ou « Bonus » alimente l’onglet Ressources.
-					<?php if ( ! mla_option( 'drive_api_key' ) ) : ?>
-						<br><strong>Ajoutez d’abord une clé API Google dans les <a href="<?php echo esc_url( $settings ); ?>">réglages</a>.</strong>
-					<?php endif; ?>
+					Collez le lien d’un ou plusieurs dossiers Drive (un par ligne), partagés en « Tous les utilisateurs disposant du lien ».
+					Chaque sous-dossier devient un module, chaque fichier une leçon ; un sous-dossier « Ressources » ou « Bonus » alimente l’onglet Ressources.
 				</p>
 				<div class="mla-admin__row">
-					<input type="url" class="widefat" placeholder="https://drive.google.com/drive/folders/…" data-mla-import-url>
+					<textarea class="widefat" rows="2" placeholder="https://drive.google.com/drive/folders/…" data-mla-import-url></textarea>
 					<button type="button" class="button button-primary" data-mla-import>Importer</button>
 				</div>
 				<p class="mla-admin__status" data-mla-import-status></p>
@@ -137,12 +133,8 @@ class MLA_Admin {
 		if ( ! current_user_can( 'edit_posts' ) ) {
 			wp_send_json_error( 'Action non autorisée.', 403 );
 		}
-		$key = mla_option( 'drive_api_key' );
-		if ( ! $key ) {
-			wp_send_json_error( 'Ajoutez une clé API Google Drive dans Espace formation → Réglages.' );
-		}
-		$url    = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
-		$result = MLA_Drive::import_folder( $url, $key );
+		$urls   = isset( $_POST['url'] ) ? preg_split( '~\s+~', sanitize_textarea_field( wp_unslash( $_POST['url'] ) ) ) : array();
+		$result = MLA_Drive::import_folders( array_map( 'esc_url_raw', $urls ), mla_option( 'drive_api_key' ) );
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( $result->get_error_message() );
 		}
@@ -349,7 +341,7 @@ class MLA_Admin {
 						<th><label for="mla_key">Clé API Google Drive</label></th>
 						<td>
 							<input type="text" id="mla_key" class="regular-text" name="mla_settings[drive_api_key]" value="<?php echo esc_attr( $o['drive_api_key'] ); ?>" autocomplete="off">
-							<p class="description">Facultative, sert uniquement à l’import automatique des dossiers.
+							<p class="description">Facultative : sans clé, l’import lit les dossiers partagés par lien. Une clé ajoute les durées des vidéos et les très gros dossiers.
 								<a href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" rel="noopener">Activez l’API Google Drive</a>, puis créez une clé dans « Identifiants » (restreinte à l’API Drive).</p>
 						</td>
 					</tr>

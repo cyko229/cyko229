@@ -134,6 +134,10 @@ class MLA_Drive {
 	 * @return array|WP_Error Liste de fichiers {id,name,mimeType,size,videoMediaMetadata}.
 	 */
 	public static function list_folder( $folder_id, $api_key ) {
+		if ( ! $api_key ) {
+			$public = self::read_public_folder( $folder_id );
+			return is_wp_error( $public ) ? $public : $public['files'];
+		}
 		$files = array();
 		$token = '';
 		do {
@@ -175,6 +179,163 @@ class MLA_Drive {
 			}
 		);
 		return $files;
+	}
+
+	/**
+	 * Lit un dossier partagé par lien sans clé API, via la vue intégrable publique de Drive.
+	 * Cette vue liste le nom, le lien et l'icône (qui porte le type MIME) de chaque élément.
+	 *
+	 * @return array{name:string,files:array}|WP_Error
+	 */
+	public static function read_public_folder( $folder_id ) {
+		$cache_key = 'mla_drive_' . md5( $folder_id );
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+		$response = wp_remote_get(
+			'https://drive.google.com/embeddedfolderview?id=' . rawurlencode( $folder_id ),
+			array(
+				'timeout' => 20,
+				'headers' => array( 'Accept-Language' => 'fr-FR,fr;q=0.9' ),
+			)
+		);
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		$html = wp_remote_retrieve_body( $response );
+		if ( 200 !== wp_remote_retrieve_response_code( $response ) || false === strpos( $html, 'flip-entry' ) && false === strpos( $html, 'folder-view' ) ) {
+			return new WP_Error( 'mla_drive', 'Dossier Drive illisible : vérifiez qu’il est partagé en « Tous les utilisateurs disposant du lien ».' );
+		}
+
+		$doc = new DOMDocument();
+		libxml_use_internal_errors( true );
+		$doc->loadHTML( '<?xml encoding="utf-8" ?>' . $html );
+		libxml_clear_errors();
+		$xpath = new DOMXPath( $doc );
+
+		$name  = '';
+		$title = $xpath->query( '//title' )->item( 0 );
+		if ( $title ) {
+			$name = trim( preg_replace( '~\s*[-–]\s*Google\s*Drive\s*$~iu', '', $title->textContent ) );
+		}
+
+		$files = array();
+		foreach ( $xpath->query( '//div[contains(concat(" ", normalize-space(@class), " "), " flip-entry ")]' ) as $entry ) {
+			$id = preg_replace( '~^entry-~', '', $entry->getAttribute( 'id' ) );
+			$a  = $xpath->query( './/a[@href]', $entry )->item( 0 );
+			$t  = $xpath->query( './/*[contains(@class, "flip-entry-title")]', $entry )->item( 0 );
+			if ( ! $id || ! $t ) {
+				continue;
+			}
+			$href = $a ? $a->getAttribute( 'href' ) : '';
+			$mime = '';
+			foreach ( $xpath->query( './/img[@src]', $entry ) as $img ) {
+				if ( preg_match( '~/type/([a-z0-9.+-]+/[a-z0-9.+-]+)~i', $img->getAttribute( 'src' ), $m ) ) {
+					$mime = strtolower( $m[1] );
+					break;
+				}
+			}
+			if ( preg_match( '~/drive/(?:u/\d+/)?folders/~', $href ) ) {
+				$mime = self::FOLDER_MIME;
+			} elseif ( '' === $mime ) {
+				$mime = self::mime_from_href( $href, $t->textContent );
+			}
+			$files[] = array(
+				'id'       => $id,
+				'name'     => trim( $t->textContent ),
+				'mimeType' => $mime,
+			);
+		}
+		usort(
+			$files,
+			function ( $a, $b ) {
+				return strnatcasecmp( $a['name'], $b['name'] );
+			}
+		);
+
+		$result = array(
+			'name'  => $name,
+			'files' => $files,
+		);
+		set_transient( $cache_key, $result, 10 * MINUTE_IN_SECONDS );
+		return $result;
+	}
+
+	private static function mime_from_href( $href, $name ) {
+		$google = array(
+			'document'     => 'application/vnd.google-apps.document',
+			'spreadsheets' => 'application/vnd.google-apps.spreadsheet',
+			'presentation' => 'application/vnd.google-apps.presentation',
+		);
+		if ( preg_match( '~docs\.google\.com/(document|spreadsheets|presentation)/~', $href, $m ) ) {
+			return $google[ $m[1] ];
+		}
+		$ext = strtolower( pathinfo( $name, PATHINFO_EXTENSION ) );
+		$map = array(
+			'mp4' => 'video/mp4', 'mov' => 'video/quicktime', 'mkv' => 'video/x-matroska', 'webm' => 'video/webm', 'avi' => 'video/x-msvideo',
+			'mp3' => 'audio/mpeg', 'm4a' => 'audio/mp4', 'wav' => 'audio/wav',
+			'pdf' => 'application/pdf', 'zip' => 'application/zip', 'rar' => 'application/x-rar',
+			'png' => 'image/png', 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg',
+		);
+		return $map[ $ext ] ?? 'application/octet-stream';
+	}
+
+	/**
+	 * Nom d'un dossier Drive.
+	 */
+	public static function folder_name( $folder_id, $api_key ) {
+		if ( ! $api_key ) {
+			$public = self::read_public_folder( $folder_id );
+			return is_wp_error( $public ) ? '' : $public['name'];
+		}
+		$response = wp_remote_get( 'https://www.googleapis.com/drive/v3/files/' . rawurlencode( $folder_id ) . '?fields=name&supportsAllDrives=true&key=' . rawurlencode( $api_key ), array( 'timeout' => 15 ) );
+		$body     = is_wp_error( $response ) ? array() : json_decode( wp_remote_retrieve_body( $response ), true );
+		return $body['name'] ?? '';
+	}
+
+	/**
+	 * Importe un ou plusieurs dossiers Drive dans une seule formation.
+	 * Avec plusieurs dossiers, chacun apporte ses modules (un dossier sans sous-dossier devient un module à son nom)
+	 * et un lien « dossier complet » dans les ressources.
+	 *
+	 * @param string[] $urls
+	 * @return array|WP_Error
+	 */
+	public static function import_folders( $urls, $api_key ) {
+		$urls = array_values( array_filter( array_map( 'trim', (array) $urls ) ) );
+		if ( ! $urls ) {
+			return new WP_Error( 'mla_drive', 'Collez au moins un lien de dossier Google Drive.' );
+		}
+		if ( 1 === count( $urls ) ) {
+			return self::import_folder( $urls[0], $api_key );
+		}
+		$merged = array(
+			'download_all' => '',
+			'modules'      => array(),
+			'resources'    => array(),
+		);
+		$folder_links = array();
+		foreach ( $urls as $i => $url ) {
+			$part = self::import_folder( $url, $api_key );
+			if ( is_wp_error( $part ) ) {
+				return new WP_Error( 'mla_drive', 'Dossier ' . ( $i + 1 ) . ' : ' . $part->get_error_message() );
+			}
+			$name = self::clean_title( self::folder_name( self::parse( $url )['id'], $api_key ) ) ?: 'Partie ' . ( $i + 1 );
+			if ( 1 === count( $part['modules'] ) && 'Contenu de la formation' === $part['modules'][0]['title'] ) {
+				$part['modules'][0]['title'] = $name;
+			}
+			$merged['modules']   = array_merge( $merged['modules'], $part['modules'] );
+			$merged['resources'] = array_merge( $merged['resources'], $part['resources'] );
+			$folder_links[]      = array(
+				'id'    => self::uid(),
+				'title' => 'Dossier complet : ' . $name,
+				'url'   => $part['download_all'],
+				'note'  => 'Ouvre le dossier sur Google Drive (bouton « Tout télécharger »)',
+			);
+		}
+		$merged['resources'] = array_merge( $merged['resources'], $folder_links );
+		return $merged;
 	}
 
 	/**

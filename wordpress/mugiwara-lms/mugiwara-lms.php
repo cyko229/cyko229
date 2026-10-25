@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Mugiwara LMS – Formations Google Drive
  * Description:       Transforme la boutique WooCommerce en plateforme de formation : chaque achat crée un compte et ouvre l'accès à un espace élève (lecteur de leçons, ressources, téléchargements), avec des contenus hébergés sur Google Drive.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.2
  * Requires PHP:      7.4
  * Author:            Mugiwara Academy
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'MLA_VERSION', '1.0.0' );
+define( 'MLA_VERSION', '1.1.0' );
 define( 'MLA_FILE', __FILE__ );
 define( 'MLA_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MLA_URL', plugin_dir_url( __FILE__ ) );
@@ -22,6 +22,7 @@ require_once MLA_DIR . 'includes/class-mla-courses.php';
 require_once MLA_DIR . 'includes/class-mla-access.php';
 require_once MLA_DIR . 'includes/class-mla-frontend.php';
 require_once MLA_DIR . 'includes/class-mla-admin.php';
+require_once MLA_DIR . 'includes/class-mla-rest.php';
 
 /**
  * Lit un réglage du plugin.
@@ -60,6 +61,7 @@ add_action(
 		}
 		MLA_Access::init();
 		MLA_Frontend::init();
+		MLA_Rest::init();
 	}
 );
 
