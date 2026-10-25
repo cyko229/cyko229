@@ -12,27 +12,108 @@
 		var grid = $('[data-mla-grid]');
 		if (!grid) { return; }
 		var search = $('[data-mla-search]');
+		var sortSel = $('[data-mla-sort]');
 		var empty = $('[data-mla-noresult]');
-		var filter = 'all';
+		var pager = $('[data-mla-pages]');
+		var countLabel = $('[data-mla-count-label]');
+		var cards = $$('.mla-card', grid);
+		var PER_PAGE = 9;
+		var state = { filter: 'all', page: 1, sort: 'recent' };
+
+		// Le tri choisi est mémorisé dans ce navigateur.
+		try { state.sort = localStorage.getItem('mlaSort') || 'recent'; } catch (e) {}
+		if (sortSel) { sortSel.value = state.sort; }
+
+		var num = function (card, key) { return parseInt(card.dataset[key], 10) || 0; };
+		var sorters = {
+			recent: function (a, b) { return num(b, 'seen') - num(a, 'seen') || num(b, 'enrolled') - num(a, 'enrolled'); },
+			progress: function (a, b) { return num(b, 'progress') - num(a, 'progress'); },
+			title: function (a, b) { return a.dataset.title.localeCompare(b.dataset.title, 'fr'); },
+			enrolled: function (a, b) { return num(b, 'enrolled') - num(a, 'enrolled'); }
+		};
+
+		function renderPager(pages) {
+			if (!pager) { return; }
+			pager.hidden = pages < 2;
+			pager.innerHTML = '';
+			if (pages < 2) { return; }
+			function btn(label, page, opts) {
+				var b = document.createElement('button');
+				b.type = 'button';
+				b.textContent = label;
+				b.disabled = !!(opts && opts.disabled);
+				if (opts && opts.current) { b.className = 'is-active'; b.setAttribute('aria-current', 'page'); }
+				if (opts && opts.label) { b.setAttribute('aria-label', opts.label); }
+				b.addEventListener('click', function () {
+					state.page = page;
+					apply();
+					grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				});
+				pager.appendChild(b);
+			}
+			btn('←', state.page - 1, { disabled: state.page === 1, label: 'Page précédente' });
+			for (var i = 1; i <= pages; i++) { btn(String(i), i, { current: i === state.page }); }
+			btn('→', state.page + 1, { disabled: state.page === pages, label: 'Page suivante' });
+		}
 
 		function apply() {
 			var q = norm(search ? search.value : '');
-			var shown = 0;
-			$$('.mla-card', grid).forEach(function (card) {
-				var ok = (!q || card.dataset.title.indexOf(q) !== -1) && (filter === 'all' || card.dataset.state === filter);
-				card.hidden = !ok;
-				if (ok) { shown++; }
+			var visible = cards.filter(function (card) {
+				return (!q || card.dataset.title.indexOf(q) !== -1) && (state.filter === 'all' || card.dataset.state === state.filter);
 			});
-			if (empty) { empty.hidden = shown > 0; }
+			visible.sort(sorters[state.sort] || sorters.recent);
+			var pages = Math.max(1, Math.ceil(visible.length / PER_PAGE));
+			state.page = Math.min(state.page, pages);
+			var from = (state.page - 1) * PER_PAGE;
+			var onPage = visible.slice(from, from + PER_PAGE);
+
+			cards.forEach(function (card) { card.hidden = onPage.indexOf(card) === -1; });
+			onPage.forEach(function (card) { grid.appendChild(card); });
+
+			if (empty) { empty.hidden = visible.length > 0; }
+			if (countLabel) {
+				countLabel.textContent = visible.length + ' formation' + (visible.length > 1 ? 's' : '') +
+					(pages > 1 ? ' · page ' + state.page + '/' + pages : '');
+			}
+			renderPager(pages);
 		}
-		if (search) { search.addEventListener('input', apply); }
+
+		// Affichage grille ou liste, mémorisé dans ce navigateur.
+		function setView(view) {
+			grid.classList.toggle('mla-grid--list', view === 'list');
+			$$('[data-mla-view]').forEach(function (b) {
+				b.classList.toggle('is-active', b.dataset.mlaView === view);
+				b.setAttribute('aria-pressed', b.dataset.mlaView === view ? 'true' : 'false');
+			});
+		}
+		var view = 'grid';
+		try { view = localStorage.getItem('mlaView') || 'grid'; } catch (e) {}
+		setView(view);
+		$$('[data-mla-view]').forEach(function (b) {
+			b.addEventListener('click', function () {
+				setView(b.dataset.mlaView);
+				try { localStorage.setItem('mlaView', b.dataset.mlaView); } catch (e) {}
+			});
+		});
+
+		if (search) { search.addEventListener('input', function () { state.page = 1; apply(); }); }
+		if (sortSel) {
+			sortSel.addEventListener('change', function () {
+				state.sort = sortSel.value;
+				state.page = 1;
+				try { localStorage.setItem('mlaSort', state.sort); } catch (e) {}
+				apply();
+			});
+		}
 		$$('[data-mla-filter]').forEach(function (btn) {
 			btn.addEventListener('click', function () {
-				filter = btn.dataset.mlaFilter;
+				state.filter = btn.dataset.mlaFilter;
+				state.page = 1;
 				$$('[data-mla-filter]').forEach(function (b) { b.classList.toggle('is-active', b === btn); });
 				apply();
 			});
 		});
+		apply();
 	}
 
 	/* ---------------- Lecteur ---------------- */

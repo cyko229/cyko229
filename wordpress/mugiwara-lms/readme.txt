@@ -2,7 +2,7 @@
 Requires at least: 6.2
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 
 Transforme la boutique WooCommerce de Mugiwara Academy en plateforme de formation.
 

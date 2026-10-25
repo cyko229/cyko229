@@ -12,6 +12,7 @@ class MLA_Frontend {
 
 	const PROGRESS_META = 'mla_progress';
 	const LAST_META     = 'mla_last_lesson';
+	const SEEN_META     = 'mla_last_seen';
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'add_endpoints' ) );
@@ -199,6 +200,10 @@ class MLA_Frontend {
 		$last[ $course_id ] = $lesson_id;
 		update_user_meta( $user_id, self::LAST_META, $last );
 
+		$seen               = (array) get_user_meta( $user_id, self::SEEN_META, true );
+		$seen[ $course_id ] = time();
+		update_user_meta( $user_id, self::SEEN_META, $seen );
+
 		if ( null !== $request['done'] ) {
 			$progress = self::progress_map( $user_id );
 			if ( $request['done'] ) {
@@ -297,6 +302,7 @@ class MLA_Frontend {
 			'modules'   => count( $structure['modules'] ),
 			'resources' => count( $structure['resources'] ),
 			'enrolled'  => (int) ( MLA_Access::enrollments( $user_id )[ $course_id ]['date'] ?? 0 ),
+			'seen'      => (int) ( ( (array) get_user_meta( $user_id, self::SEEN_META, true ) )[ $course_id ] ?? 0 ),
 		);
 	}
 

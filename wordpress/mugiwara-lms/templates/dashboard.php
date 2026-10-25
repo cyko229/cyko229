@@ -52,21 +52,50 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 			<a class="mla-btn" href="<?php echo esc_url( $shop_url ); ?>">Découvrir les formations</a>
 		</div>
 	<?php else : ?>
-		<?php if ( count( $cards ) > 4 ) : ?>
+		<?php if ( count( $cards ) > 1 ) : ?>
+			<?php
+			$states = array_count_values( wp_list_pluck( $cards, 'cta' ) );
+			$filters = array(
+				'all'       => array( 'Toutes', count( $cards ) ),
+				'Reprendre' => array( 'En cours', $states['Reprendre'] ?? 0 ),
+				'Commencer' => array( 'À commencer', $states['Commencer'] ?? 0 ),
+				'Revoir'    => array( 'Terminées', $states['Revoir'] ?? 0 ),
+			);
+			?>
 			<div class="mla-toolbar">
 				<input type="search" class="mla-search" placeholder="Rechercher une formation…" aria-label="Rechercher une formation" data-mla-search>
-				<div class="mla-filters" role="tablist">
-					<button type="button" class="is-active" data-mla-filter="all">Toutes</button>
-					<button type="button" data-mla-filter="Reprendre">En cours</button>
-					<button type="button" data-mla-filter="Commencer">À commencer</button>
-					<button type="button" data-mla-filter="Revoir">Terminées</button>
+				<label class="mla-sort">
+					<span>Trier par</span>
+					<select data-mla-sort aria-label="Trier les formations">
+						<option value="recent">Consultées récemment</option>
+						<option value="progress">Progression</option>
+						<option value="title">Titre (A → Z)</option>
+						<option value="enrolled">Date d’achat</option>
+					</select>
+				</label>
+				<div class="mla-view" role="group" aria-label="Affichage">
+					<button type="button" class="is-active" data-mla-view="grid" aria-label="Affichage en grille" title="Grille">▦</button>
+					<button type="button" data-mla-view="list" aria-label="Affichage en liste" title="Liste">☰</button>
 				</div>
+			</div>
+			<div class="mla-toolbar mla-toolbar--sub">
+				<div class="mla-filters" role="tablist">
+					<?php foreach ( $filters as $key => $filter ) : ?>
+						<?php if ( 'all' === $key || $filter[1] ) : ?>
+							<button type="button" class="<?php echo 'all' === $key ? 'is-active' : ''; ?>" data-mla-filter="<?php echo esc_attr( $key ); ?>">
+								<?php echo esc_html( $filter[0] ); ?> <span class="mla-pill"><?php echo (int) $filter[1]; ?></span>
+							</button>
+						<?php endif; ?>
+					<?php endforeach; ?>
+				</div>
+				<span class="mla-count" data-mla-count-label></span>
 			</div>
 		<?php endif; ?>
 
 		<div class="mla-grid" data-mla-grid>
 			<?php foreach ( $cards as $card ) : ?>
-				<article class="mla-card" data-title="<?php echo esc_attr( remove_accents( strtolower( $card['title'] ) ) ); ?>" data-state="<?php echo esc_attr( $card['cta'] ); ?>">
+				<article class="mla-card" data-title="<?php echo esc_attr( remove_accents( strtolower( $card['title'] ) ) ); ?>" data-state="<?php echo esc_attr( $card['cta'] ); ?>"
+					data-progress="<?php echo (int) $card['progress']['percent']; ?>" data-enrolled="<?php echo (int) $card['enrolled']; ?>" data-seen="<?php echo (int) $card['seen']; ?>">
 					<a class="mla-card__media" href="<?php echo esc_url( $card['url'] ); ?>" tabindex="-1">
 						<?php if ( $card['image'] ) : ?>
 							<img src="<?php echo esc_url( $card['image'] ); ?>" alt="" loading="lazy">
@@ -98,5 +127,6 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 			<?php endforeach; ?>
 		</div>
 		<p class="mla-noresult" data-mla-noresult hidden>Aucune formation ne correspond à votre recherche.</p>
+		<nav class="mla-pagination" data-mla-pages aria-label="Pages de formations" hidden></nav>
 	<?php endif; ?>
 </div>
