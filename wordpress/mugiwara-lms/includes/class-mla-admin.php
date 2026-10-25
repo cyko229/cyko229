@@ -28,6 +28,8 @@ class MLA_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
 		add_action( 'admin_post_mla_sync_orders', array( __CLASS__, 'sync_orders' ) );
+		add_action( 'admin_post_mla_save_mail', array( __CLASS__, 'save_mail' ) );
+		add_action( 'admin_post_mla_test_mail', array( __CLASS__, 'test_mail' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'notices' ) );
 	}
 
@@ -287,6 +289,7 @@ class MLA_Admin {
 						'grant_processing'   => empty( $input['grant_processing'] ) ? 'no' : 'yes',
 						'redirect_dashboard' => empty( $input['redirect_dashboard'] ) ? 'no' : 'yes',
 						'block_repurchase'   => empty( $input['block_repurchase'] ) ? 'no' : 'yes',
+						'mail_logo'          => esc_url_raw( $input['mail_logo'] ?? mla_option( 'mail_logo' ) ),
 					);
 				},
 			)
@@ -362,6 +365,44 @@ class MLA_Admin {
 			</form>
 
 			<hr>
+			<h2>E-mails (SMTP)</h2>
+			<?php $mail = MLA_Mail::public_settings(); ?>
+			<p>Les e-mails du site (commandes, compte, mot de passe, accès aux formations) partent par la boîte mail de votre domaine, avec le gabarit aux couleurs du site.
+				<?php if ( $mail['configured'] ) : ?>
+					<strong style="color:#007017">✓ SMTP configuré</strong>
+				<?php else : ?>
+					<strong style="color:#b32d2e">SMTP non configuré : les e-mails risquent de ne pas arriver.</strong>
+				<?php endif; ?>
+			</p>
+			<?php if ( $mail['last_error'] ) : ?>
+				<div class="notice notice-error inline"><p>Dernière erreur d’envoi : <?php echo esc_html( $mail['last_error'] ); ?></p></div>
+			<?php endif; ?>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="mla_save_mail">
+				<?php wp_nonce_field( 'mla_save_mail' ); ?>
+				<table class="form-table">
+					<tr><th><label for="mla_smtp_host">Serveur SMTP</label></th><td><input id="mla_smtp_host" class="regular-text" name="mail[host]" value="<?php echo esc_attr( $mail['host'] ); ?>" placeholder="smtp.hostinger.com"></td></tr>
+					<tr><th><label for="mla_smtp_port">Port et sécurité</label></th><td>
+						<input id="mla_smtp_port" type="number" class="small-text" name="mail[port]" value="<?php echo esc_attr( $mail['port'] ); ?>">
+						<select name="mail[secure]">
+							<option value="ssl" <?php selected( 'ssl', $mail['secure'] ); ?>>SSL (port 465)</option>
+							<option value="tls" <?php selected( 'tls', $mail['secure'] ); ?>>TLS (port 587)</option>
+						</select>
+					</td></tr>
+					<tr><th><label for="mla_smtp_user">Adresse e-mail (identifiant)</label></th><td><input id="mla_smtp_user" type="email" class="regular-text" name="mail[user]" value="<?php echo esc_attr( $mail['user'] ); ?>" placeholder="contact@votre-domaine.fr"></td></tr>
+					<tr><th><label for="mla_smtp_pass">Mot de passe</label></th><td><input id="mla_smtp_pass" type="password" class="regular-text" name="mail[pass]" value="" autocomplete="new-password" placeholder="<?php echo $mail['pass_saved'] ? '•••••••• (enregistré, laissez vide pour le garder)' : ''; ?>"></td></tr>
+					<tr><th><label for="mla_smtp_name">Nom de l’expéditeur</label></th><td><input id="mla_smtp_name" class="regular-text" name="mail[from_name]" value="<?php echo esc_attr( $mail['from_name'] ); ?>"></td></tr>
+				</table>
+				<?php submit_button( 'Enregistrer les réglages e-mail', 'primary', 'submit', false ); ?>
+			</form>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:12px">
+				<input type="hidden" name="action" value="mla_test_mail">
+				<?php wp_nonce_field( 'mla_test_mail' ); ?>
+				<input type="email" class="regular-text" name="to" value="<?php echo esc_attr( wp_get_current_user()->user_email ); ?>">
+				<?php submit_button( 'Envoyer un e-mail de test', 'secondary', 'submit', false ); ?>
+			</form>
+
+			<hr>
 			<h2>Commandes déjà passées</h2>
 			<p>Après avoir lié vos produits à leurs formations, ouvrez l’accès aux clients qui ont déjà acheté (commandes « En cours » et « Terminée »).</p>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -387,7 +428,36 @@ class MLA_Admin {
 		exit;
 	}
 
+	public static function save_mail() {
+		check_admin_referer( 'mla_save_mail' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Action non autorisée.' );
+		}
+		MLA_Mail::save_settings( isset( $_POST['mail'] ) ? map_deep( wp_unslash( (array) $_POST['mail'] ), 'trim' ) : array() ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- nettoyé par save_settings().
+		wp_safe_redirect( add_query_arg( array( 'post_type' => MLA_Courses::POST_TYPE, 'page' => 'mla-settings', 'mla_mail' => 'saved' ), admin_url( 'edit.php' ) ) );
+		exit;
+	}
+
+	public static function test_mail() {
+		check_admin_referer( 'mla_test_mail' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Action non autorisée.' );
+		}
+		$result = MLA_Mail::send_test( isset( $_POST['to'] ) ? sanitize_email( wp_unslash( $_POST['to'] ) ) : '' );
+		wp_safe_redirect( add_query_arg( array( 'post_type' => MLA_Courses::POST_TYPE, 'page' => 'mla-settings', 'mla_mail' => $result['sent'] ? 'sent' : 'failed' ), admin_url( 'edit.php' ) ) );
+		exit;
+	}
+
 	public static function notices() {
+		$mail_notices = array(
+			'saved'  => array( 'success', 'Réglages e-mail enregistrés.' ),
+			'sent'   => array( 'success', 'E-mail de test envoyé : vérifiez la boîte de réception (et les indésirables).' ),
+			'failed' => array( 'error', 'L’e-mail de test n’est pas parti : voir l’erreur dans la section E-mails.' ),
+		);
+		$state = isset( $_GET['mla_mail'] ) ? sanitize_key( $_GET['mla_mail'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		if ( isset( $mail_notices[ $state ] ) ) {
+			echo '<div class="notice notice-' . esc_attr( $mail_notices[ $state ][0] ) . ' is-dismissible"><p>' . esc_html( $mail_notices[ $state ][1] ) . '</p></div>';
+		}
 		if ( isset( $_GET['mla_synced'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			echo '<div class="notice notice-success is-dismissible"><p>' . (int) $_GET['mla_synced'] . ' commande(s) vérifiée(s) : les accès manquants ont été ouverts.</p></div>'; // phpcs:ignore WordPress.Security.NonceVerification
 		}

@@ -107,6 +107,49 @@ class MLA_Rest {
 
 		register_rest_route(
 			self::NS,
+			'/mail',
+			array(
+				array(
+					'methods'             => 'GET',
+					'permission_callback' => array( __CLASS__, 'can_configure' ),
+					'callback'            => function () {
+						return MLA_Mail::public_settings();
+					},
+				),
+				array(
+					'methods'             => 'POST',
+					'permission_callback' => array( __CLASS__, 'can_configure' ),
+					'callback'            => function ( $request ) {
+						if ( $request['logo'] ) {
+							$options              = get_option( 'mla_settings', array() );
+							$options['mail_logo'] = esc_url_raw( $request['logo'] );
+							update_option( 'mla_settings', $options );
+						}
+						$settings = MLA_Mail::save_settings( $request->get_json_params() ?: $request->get_body_params() );
+						if ( $request['brand_woocommerce'] ) {
+							self::brand_woocommerce_emails();
+						}
+						return $settings;
+					},
+				),
+			)
+		);
+
+		register_rest_route(
+			self::NS,
+			'/mail/test',
+			array(
+				'methods'             => 'POST',
+				'permission_callback' => array( __CLASS__, 'can_configure' ),
+				'args'                => array( 'to' => array( 'required' => true, 'type' => 'string', 'format' => 'email' ) ),
+				'callback'            => function ( $request ) {
+					return MLA_Mail::send_test( sanitize_email( $request['to'] ) );
+				},
+			)
+		);
+
+		register_rest_route(
+			self::NS,
 			'/sync-orders',
 			array(
 				'methods'             => 'POST',
@@ -116,6 +159,37 @@ class MLA_Rest {
 				},
 			)
 		);
+	}
+
+	/**
+	 * Les identifiants SMTP sont réservés aux administrateurs du site.
+	 */
+	public static function can_configure() {
+		return current_user_can( 'manage_options' );
+	}
+
+	/**
+	 * Couleurs WooCommerce alignées sur la charte (utilisées dans le corps des e-mails : tableaux, liens).
+	 */
+	private static function brand_woocommerce_emails() {
+		$options = array(
+			'woocommerce_email_base_color'            => MLA_Mail::BLUE,
+			'woocommerce_email_background_color'      => MLA_Mail::SOFT,
+			'woocommerce_email_body_background_color' => '#ffffff',
+			'woocommerce_email_text_color'            => MLA_Mail::INK,
+			'woocommerce_email_footer_text_color'     => '#B9BCCB',
+			'woocommerce_email_footer_text'           => 'Une question ? Répondez simplement à cet e-mail ou écrivez-nous à ' . MLA_Mail::from_email( get_option( 'admin_email' ) ) . '.',
+			'woocommerce_email_reply_to_enabled'      => 'yes',
+			'woocommerce_email_reply_to_name'         => get_bloginfo( 'name' ),
+			'woocommerce_email_reply_to_address'      => MLA_Mail::from_email( get_option( 'admin_email' ) ),
+		);
+		$logo = MLA_Mail::logo_url();
+		if ( $logo ) {
+			$options['woocommerce_email_header_image'] = $logo;
+		}
+		foreach ( $options as $key => $value ) {
+			update_option( $key, $value );
+		}
 	}
 
 	public static function course_summary( $post ) {

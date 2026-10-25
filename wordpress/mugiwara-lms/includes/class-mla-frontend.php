@@ -448,9 +448,12 @@ class MLA_Frontend {
 			echo "\nAccédez à vos formations : " . esc_url_raw( $url ) . "\n\n";
 			return;
 		}
-		echo '<div style="margin:0 0 24px;padding:20px;border-radius:8px;background:#f6f7fb;text-align:center">'
-			. '<p style="margin:0 0 12px;font-size:16px"><strong>Vos formations sont disponibles dans votre espace élève.</strong></p>'
-			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;padding:12px 24px;border-radius:6px;background:' . esc_attr( sanitize_hex_color( mla_option( 'accent', '#1E4DF0' ) ) ) . ';color:#fff;text-decoration:none;font-weight:bold">Accéder à mes formations</a>'
+		$titles = array_map( 'get_the_title', MLA_Access::courses_in_order( $order ) );
+		echo '<div style="margin:26px 0;padding:22px 24px;border-radius:16px;background:' . esc_attr( MLA_Mail::INK ) . ';color:#ffffff;">'
+			. '<p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:' . esc_attr( MLA_Mail::LIME ) . ';">Votre espace formation est prêt</p>'
+			. '<p style="margin:0 0 4px;font-size:17px;font-weight:800;color:#ffffff;">' . esc_html( implode( ' · ', $titles ) ) . '</p>'
+			. '<p style="margin:0 0 16px;font-size:14px;color:#B9BCCB;">Connectez-vous avec votre e-mail et votre mot de passe pour suivre et télécharger vos formations.</p>'
+			. '<a href="' . esc_url( $url ) . '" style="display:inline-block;padding:12px 24px;border-radius:99px;background:' . esc_attr( MLA_Mail::BLUE ) . ';color:#ffffff;text-decoration:none;font-weight:700;">▶ Accéder à mes formations</a>'
 			. '</div>';
 	}
 
