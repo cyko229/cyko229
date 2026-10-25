@@ -271,3 +271,11 @@ body .mla .mla-eye{position:absolute;top:50%;right:6px;transform:translateY(-50%
 body .mla .mla-eye:hover,body .mla .mla-eye:focus-visible{color:var(--mla-ink);background:var(--mla-soft);outline:none}
 .mla-eye .mla-eye__hide,.mla-eye.is-visible .mla-eye__show{display:none}
 .mla-eye.is-visible .mla-eye__hide{display:block}
+
+/* E-mail modifiable sur la page d'activation */
+.mla-email-wrap{position:relative;display:block}
+body .mla .mla-email-wrap input[readonly]{padding-right:96px}
+body .mla .mla-email-edit{position:absolute;top:50%;right:8px;transform:translateY(-50%);padding:8px 12px;border-radius:99px;background:#fff;border:1.5px solid var(--mla-line);font-size:13px;font-weight:700;color:var(--mla-accent)!important;text-decoration:none!important}
+body .mla .mla-email-edit:hover{border-color:var(--mla-accent)}
+.mla-email-edit[hidden],.mla-email-hint[hidden]{display:none}
+.mla-email-hint{font-size:13px;color:var(--mla-muted);line-height:1.45}

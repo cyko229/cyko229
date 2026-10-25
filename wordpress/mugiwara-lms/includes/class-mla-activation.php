@@ -9,7 +9,6 @@ defined( 'ABSPATH' ) || exit;
 class MLA_Activation {
 
 	const SLUG         = 'activer-mon-compte';
-	const QUERY_VAR    = 'mla_activate';
 	const OTP_META     = 'mla_otp';
 	const PENDING_META = 'mla_needs_activation';
 
@@ -22,8 +21,8 @@ class MLA_Activation {
 	private static $view = array();
 
 	public static function init() {
-		add_action( 'init', array( __CLASS__, 'rewrite' ) );
-		add_filter( 'query_vars', array( __CLASS__, 'query_vars' ) );
+		add_action( 'init', array( __CLASS__, 'ensure_page' ), 20 );
+		add_shortcode( 'mugiwara_activation', array( __CLASS__, 'shortcode' ) );
 		add_action( 'template_redirect', array( __CLASS__, 'handle' ), 0 );
 		add_action( 'template_redirect', array( __CLASS__, 'require_activation' ), 5 );
 		add_action( 'woocommerce_created_customer', array( __CLASS__, 'flag_new_customer' ) );
@@ -31,20 +30,44 @@ class MLA_Activation {
 		add_filter( 'lostpassword_url', array( __CLASS__, 'lost_password_url' ), 20 );
 	}
 
-	public static function rewrite() {
-		add_rewrite_rule( '^' . self::SLUG . '/?$', 'index.php?' . self::QUERY_VAR . '=1', 'top' );
+	/**
+	 * La page « Activer mon compte » est une vraie page WordPress : le thème et Elementor
+	 * l'affichent comme les autres (en-tête, pied, styles). Elle est créée si besoin.
+	 */
+	public static function ensure_page() {
+		if ( self::page_id() ) {
+			return;
+		}
+		$page = get_page_by_path( self::SLUG );
+		$id   = $page ? $page->ID : wp_insert_post(
+			array(
+				'post_type'      => 'page',
+				'post_status'    => 'publish',
+				'post_title'     => 'Activer mon compte',
+				'post_name'      => self::SLUG,
+				'post_content'   => '<!-- wp:shortcode -->[mugiwara_activation]<!-- /wp:shortcode -->',
+				'comment_status' => 'closed',
+			)
+		);
+		if ( $id && ! is_wp_error( $id ) ) {
+			// Même gabarit que les pages du site (en-tête et pied Elementor, sans titre WordPress).
+			if ( defined( 'ELEMENTOR_VERSION' ) && ! get_post_meta( $id, '_wp_page_template', true ) ) {
+				update_post_meta( $id, '_wp_page_template', 'elementor_header_footer' );
+			}
+			update_option( 'mla_activation_page', (int) $id );
+		}
 	}
 
-	public static function query_vars( $vars ) {
-		$vars[] = self::QUERY_VAR;
-		return $vars;
+	public static function page_id() {
+		$id = (int) get_option( 'mla_activation_page' );
+		return $id && 'publish' === get_post_status( $id ) ? $id : 0;
 	}
 
 	/**
 	 * Lien vers la page d'activation. Avec une commande, l'e-mail est pré-rempli grâce à la clé de commande.
 	 */
 	public static function url( $args = array() ) {
-		$base = get_option( 'permalink_structure' ) ? home_url( '/' . self::SLUG . '/' ) : add_query_arg( self::QUERY_VAR, 1, home_url( '/' ) );
+		$base = self::page_id() ? get_permalink( self::page_id() ) : home_url( '/' . self::SLUG . '/' );
 		return add_query_arg( array_filter( $args ), $base );
 	}
 
@@ -96,7 +119,7 @@ class MLA_Activation {
 	 * ---------------------------------------------------------------- */
 
 	public static function handle() {
-		if ( ! get_query_var( self::QUERY_VAR ) ) {
+		if ( ! self::page_id() || ! is_page( self::page_id() ) ) {
 			return;
 		}
 		nocache_headers();
@@ -110,6 +133,7 @@ class MLA_Activation {
 			'order'    => null,
 			'redirect' => self::safe_redirect( wp_unslash( $_REQUEST['redirect'] ?? '' ) ), // phpcs:ignore WordPress.Security
 			'forgot'   => ! empty( $_GET['oubli'] ), // phpcs:ignore WordPress.Security.NonceVerification
+			'editing'  => ! empty( $_GET['modifier'] ), // phpcs:ignore WordPress.Security.NonceVerification
 		);
 
 		// E-mail pré-rempli : commande (clé secrète du lien de remerciement) ou compte connecté.
@@ -143,29 +167,22 @@ class MLA_Activation {
 		}
 
 		self::$view = $view;
-
-		// Page virtuelle traitée comme une vraie page, rendue au moment normal (template_include) :
-		// Elementor prépare alors l'en-tête et le pied du site comme partout ailleurs.
-		global $wp_query;
-		$wp_query->is_404      = false;
-		$wp_query->is_home     = false;
-		$wp_query->is_page     = true;
-		$wp_query->is_singular = true;
-		status_header( 200 );
-
 		add_action( 'wp_enqueue_scripts', function () { wp_enqueue_style( 'mla-front' ); } );
-		add_filter( 'body_class', function ( $c ) { return array_diff( array_merge( $c, array( 'mla-activation-page', 'page' ) ), array( 'blog', 'error404' ) ); } );
-		add_filter( 'pre_get_document_title', function () { return 'Activer mon compte – ' . get_bloginfo( 'name' ); } );
-		add_filter( 'template_include', function () { return MLA_DIR . 'templates/activation-page.php'; }, 99 );
+		add_filter( 'body_class', function ( $c ) { $c[] = 'mla-activation-page'; return $c; } );
 	}
 
 	/**
-	 * Contenu de la page, appelé par templates/activation-page.php.
+	 * [mugiwara_activation] : contenu de la page, préparé par handle().
 	 */
-	public static function render() {
+	public static function shortcode() {
+		if ( ! self::$view ) {
+			return '';
+		}
 		$file = locate_template( 'mugiwara-lms/activation.php' ) ?: MLA_DIR . 'templates/activation.php';
 		$v    = self::$view;
+		ob_start();
 		include $file;
+		return ob_get_clean();
 	}
 
 	private static function safe_redirect( $url ) {
@@ -182,9 +199,30 @@ class MLA_Activation {
 			return $view;
 		}
 		$action = sanitize_key( $_POST['mla_act'] );
-		$email  = $view['locked'] ? $view['email'] : sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-		$view['email'] = $email;
-		$user  = $email ? get_user_by( 'email', $email ) : false;
+		$order  = $view['order'];
+		$posted = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		// Avec le lien de commande, l'e-mail peut être corrigé (faute de frappe à la commande) ;
+		// connecté sans commande, il reste celui du compte.
+		$email     = ( $view['locked'] && ! $order ) ? $view['email'] : ( $posted ?: $view['email'] );
+		$new_email = '';
+		if ( $order && $order->get_customer_id() ) {
+			$user = get_userdata( $order->get_customer_id() );
+			if ( $user && is_email( $email ) && 0 !== strcasecmp( $email, $user->user_email ) ) {
+				$other = get_user_by( 'email', $email );
+				if ( $other && $other->ID !== $user->ID ) {
+					$view['email']   = $email;
+					$view['editing'] = true;
+					$view['step']    = 'password';
+					$view['error']   = 'Cette adresse est déjà utilisée par un autre compte. Connectez-vous avec elle ou indiquez une autre adresse.';
+					return $view;
+				}
+				$new_email = $email;
+			}
+		} else {
+			$user = $email ? get_user_by( 'email', $email ) : false;
+		}
+		$view['email']   = $email;
+		$view['editing'] = $view['editing'] || '' !== $new_email;
 
 		if ( 'start' === $action ) {
 			$pass  = (string) wp_unslash( $_POST['password'] ?? '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- mot de passe : jamais modifié.
@@ -197,7 +235,7 @@ class MLA_Activation {
 				$view['error'] = 'Les deux mots de passe ne sont pas identiques.';
 			} else {
 				// Sans compte, on affiche la même étape : on ne révèle pas quelles adresses sont inscrites.
-				$sent = $user ? self::send_code( $user, $pass ) : true;
+				$sent = $user ? self::send_code( $user, $pass, $email, $order ) : true;
 				if ( is_wp_error( $sent ) ) {
 					$view['error'] = $sent->get_error_message();
 				} else {
@@ -211,6 +249,9 @@ class MLA_Activation {
 		if ( 'resend' === $action ) {
 			$view['step'] = 'code';
 			$sent         = $user ? self::send_code( $user, null ) : true;
+			if ( $user && ! is_wp_error( $sent ) ) {
+				$view['email'] = self::pending_email( $user );
+			}
 			if ( is_wp_error( $sent ) ) {
 				$view['error'] = $sent->get_error_message();
 			} else {
@@ -242,7 +283,7 @@ class MLA_Activation {
 	 *
 	 * @return true|WP_Error
 	 */
-	public static function send_code( $user, $password ) {
+	public static function send_code( $user, $password, $to = '', $order = null ) {
 		$otp  = get_user_meta( $user->ID, self::OTP_META, true );
 		$otp  = is_array( $otp ) ? $otp : array();
 		$now  = time();
@@ -266,6 +307,9 @@ class MLA_Activation {
 			'attempts'   => 0,
 			'sent'       => $now,
 			'pass'       => null === $password ? $otp['pass'] : wp_hash_password( $password ),
+			// Adresse qui reçoit le code : celle du compte, ou l'adresse corrigée (appliquée après confirmation).
+			'email'      => null === $password ? ( $otp['email'] ?? $user->user_email ) : ( is_email( $to ) ? $to : $user->user_email ),
+			'order'      => null === $password ? ( $otp['order'] ?? 0 ) : ( $order ? $order->get_id() : 0 ),
 			'count'      => $count + 1,
 			'hour_start' => $count ? $hour_start : $now,
 		);
@@ -281,7 +325,7 @@ class MLA_Activation {
 			. '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:22px 0"><tr>' . $digits . '</tr></table>'
 			. '<p style="margin:0 0 16px;color:' . MLA_Mail::MUTED . ';font-size:14px;">Ce code est valable 10 minutes. Si vous n’êtes pas à l’origine de cette demande, ignorez simplement cet e-mail : votre mot de passe ne sera pas modifié.</p>';
 		$sent    = wp_mail(
-			$user->user_email,
+			$otp['email'],
 			$code . ' est votre code ' . get_bloginfo( 'name' ),
 			MLA_Mail::layout( 'Votre code de confirmation', $content ),
 			array( 'Content-Type: text/html; charset=UTF-8' )
@@ -322,12 +366,33 @@ class MLA_Activation {
 		delete_user_meta( $user->ID, self::OTP_META );
 		delete_user_meta( $user->ID, self::PENDING_META );
 
+		// Adresse corrigée : le code reçu prouve qu'elle appartient au client.
+		if ( ! empty( $otp['email'] ) && 0 !== strcasecmp( $otp['email'], $user->user_email ) && ! email_exists( $otp['email'] ) ) {
+			add_filter( 'send_email_change_email', '__return_false' );
+			wp_update_user( array( 'ID' => $user->ID, 'user_email' => $otp['email'] ) );
+			update_user_meta( $user->ID, 'billing_email', $otp['email'] );
+			$order = ! empty( $otp['order'] ) && function_exists( 'wc_get_order' ) ? wc_get_order( $otp['order'] ) : null;
+			if ( $order && (int) $order->get_customer_id() === (int) $user->ID ) {
+				$order->set_billing_email( $otp['email'] );
+				$order->add_order_note( 'Adresse e-mail corrigée par le client lors de l’activation du compte : ' . $otp['email'] );
+				$order->save();
+			}
+		}
+
 		// Nouveau mot de passe : les anciennes sessions sont fermées, puis on connecte ce navigateur.
 		WP_Session_Tokens::get_instance( $user->ID )->destroy_all();
 		wp_set_current_user( $user->ID );
 		wp_set_auth_cookie( $user->ID, true, is_ssl() );
 		do_action( 'wp_login', $user->user_login, get_userdata( $user->ID ) );
 		return true;
+	}
+
+	/**
+	 * Adresse qui recevra le prochain code (éventuellement l'adresse corrigée).
+	 */
+	public static function pending_email( $user ) {
+		$otp = get_user_meta( $user->ID, self::OTP_META, true );
+		return is_array( $otp ) && ! empty( $otp['email'] ) ? $otp['email'] : $user->user_email;
 	}
 
 	/**

@@ -22,9 +22,12 @@ $hidden  = function ( $with_email = true ) use ( $v ) {
 		echo '<input type="hidden" name="email" value="' . esc_attr( $v['email'] ) . '">';
 	}
 };
-$is_code = 'code' === $v['step'];
+$is_code  = 'code' === $v['step'];
+$can_edit = $v['order'] && ! is_user_logged_in() || $v['order'] && (int) $v['order']->get_customer_id() === get_current_user_id();
+$readonly = $v['locked'] && ! ( $can_edit && $v['editing'] );
+$edit_url = $v['order'] ? MLA_Activation::url( array( 'commande' => $v['order']->get_id(), 'cle' => $v['order']->get_order_key(), 'modifier' => 1, 'redirect' => $v['redirect'] ? rawurlencode( $v['redirect'] ) : '' ) ) : '';
 ?>
-<main class="mla mla-activation">
+<div class="mla mla-activation">
 	<div class="mla-activation__card">
 		<ol class="mla-steps" aria-label="Étapes">
 			<li class="<?php echo $is_code ? 'is-done' : 'is-current'; ?>"><span>1</span> Mot de passe</li>
@@ -67,7 +70,13 @@ $is_code = 'code' === $v['step'];
 				<input type="hidden" name="mla_act" value="start">
 				<label class="mla-field">
 					<span>Adresse e-mail</span>
-					<input type="email" name="email" value="<?php echo esc_attr( $v['email'] ); ?>" autocomplete="email" required <?php echo $v['locked'] ? 'readonly' : ''; ?>>
+					<span class="mla-email-wrap">
+						<input type="email" name="email" value="<?php echo esc_attr( $v['email'] ); ?>" autocomplete="email" required <?php echo $readonly ? 'readonly' : ''; ?> data-mla-email>
+						<?php if ( $readonly && $can_edit ) : ?>
+							<a class="mla-email-edit" href="<?php echo esc_url( $edit_url ); ?>" data-mla-email-edit>Modifier</a>
+						<?php endif; ?>
+					</span>
+					<small class="mla-email-hint" data-mla-email-hint <?php echo $readonly ? 'hidden' : ''; ?>><?php echo $v['order'] ? 'Erreur dans l’adresse saisie à la commande ? Corrigez-la : le code sera envoyé à la nouvelle adresse, qui remplacera l’ancienne.' : ''; ?></small>
 				</label>
 				<label class="mla-field">
 					<span>Mot de passe</span>
@@ -107,12 +116,30 @@ $is_code = 'code' === $v['step'];
 				<input type="hidden" name="mla_act" value="resend">
 				Rien reçu ? <button type="submit" class="mla-link">Renvoyer le code</button>
 				· <a href="<?php echo esc_url( MLA_Activation::url( array_filter( array( 'commande' => $v['order'] ? $v['order']->get_id() : 0, 'cle' => $v['order'] ? $v['order']->get_order_key() : '' ) ) ) ); ?>">Modifier le mot de passe</a>
+				<?php if ( $edit_url && $can_edit ) : ?>
+					<br><a href="<?php echo esc_url( $edit_url ); ?>">Ce n’est pas la bonne adresse ? Changer d’e-mail</a>
+				<?php endif; ?>
 			</form>
 		<?php endif; ?>
 	</div>
-</main>
+</div>
 <script>
 (function () {
+	// « Modifier » rend l'e-mail modifiable sans recharger la page.
+	var edit = document.querySelector('[data-mla-email-edit]');
+	if (edit) {
+		edit.addEventListener('click', function (e) {
+			e.preventDefault();
+			var input = document.querySelector('[data-mla-email]');
+			input.readOnly = false;
+			input.focus();
+			input.select();
+			edit.hidden = true;
+			var hint = document.querySelector('[data-mla-email-hint]');
+			if (hint) { hint.hidden = false; }
+		});
+	}
+
 	// L'œil affiche ou masque le mot de passe de son champ.
 	document.querySelectorAll('[data-mla-eye]').forEach(function (btn) {
 		btn.addEventListener('click', function () {
