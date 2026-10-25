@@ -175,3 +175,10 @@
 .mla-thankyou h2{margin:0 0 8px}
 .mla-thankyou__list{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
 .mla-login-cta{text-align:center;padding:32px;border-radius:20px;background:var(--mg-soft,#F5F6FA)}
+
+/* Le widget « Mon compte » d'Elementor force la couleur des h2 (!important) et retire la marge du dernier paragraphe :
+   sélecteurs plus précis et espacement porté par le bouton. */
+body .woocommerce-MyAccount-content .mla .mla-hero h2.mla-hero__title,
+body .mla .mla-hero h2.mla-hero__title{color:#fff!important}
+body .mla .mla-empty .mla-btn{margin-top:18px}
+body .mla .mla-empty p{margin-bottom:0}
