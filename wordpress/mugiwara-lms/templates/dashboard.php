@@ -36,7 +36,7 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 				<img src="<?php echo esc_url( $resume['image'] ); ?>" alt="" loading="lazy">
 			<?php endif; ?>
 			<div class="mla-resume__body">
-				<span class="mla-eyebrow">Reprendre là où vous vous êtes arrêté</span>
+				<span class="mla-eyebrow">Reprendre</span>
 				<strong><?php echo esc_html( $resume['title'] ); ?></strong>
 				<div class="mla-bar"><span style="width:<?php echo (int) $resume['progress']['percent']; ?>%"></span></div>
 			</div>
