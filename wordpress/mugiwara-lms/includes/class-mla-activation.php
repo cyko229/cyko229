@@ -110,8 +110,13 @@ class MLA_Activation {
 		echo '<p class="mla-login-activate">Première connexion après un achat ou mot de passe oublié ? <a href="' . esc_url( self::url() ) . '">Recevoir un code par e-mail</a></p>';
 	}
 
+	/**
+	 * « Mot de passe oublié » côté boutique → code par e-mail. La page wp-login.php et l'admin
+	 * gardent la procédure WordPress, pour que l'équipe du site ne soit jamais bloquée.
+	 */
 	public static function lost_password_url( $url ) {
-		return is_admin() ? $url : self::url( array( 'oubli' => 1 ) );
+		global $pagenow;
+		return is_admin() || 'wp-login.php' === $pagenow ? $url : self::url( array( 'oubli' => 1 ) );
 	}
 
 	/* ------------------------------------------------------------------

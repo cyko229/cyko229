@@ -26,7 +26,7 @@ class MLA_Frontend {
 
 		add_action( 'template_redirect', array( __CLASS__, 'handle_download' ), 1 );
 		add_action( 'template_redirect', array( __CLASS__, 'redirect_dashboard' ) );
-		add_filter( 'woocommerce_login_redirect', array( __CLASS__, 'login_redirect' ), 20 );
+		add_filter( 'woocommerce_login_redirect', array( __CLASS__, 'login_redirect' ), 20, 2 );
 		add_filter( 'woocommerce_registration_redirect', array( __CLASS__, 'login_redirect' ), 20 );
 
 		add_action( 'init', array( __CLASS__, 'register_assets' ) );
@@ -110,7 +110,7 @@ class MLA_Frontend {
 	}
 
 	public static function redirect_dashboard() {
-		if ( 'yes' !== mla_option( 'redirect_dashboard', 'yes' ) || ! is_user_logged_in() || ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
+		if ( 'yes' !== mla_option( 'redirect_dashboard', 'yes' ) || ! is_user_logged_in() || current_user_can( 'edit_posts' ) || ! function_exists( 'is_account_page' ) || ! is_account_page() ) {
 			return;
 		}
 		if ( ! is_wc_endpoint_url() && empty( $_GET ) ) { // phpcs:ignore WordPress.Security.NonceVerification
@@ -119,7 +119,7 @@ class MLA_Frontend {
 		}
 	}
 
-	public static function login_redirect( $redirect ) {
+	public static function login_redirect( $redirect, $user = null ) {
 		// Retour vers le fichier demandé avant la connexion (voir handle_download).
 		if ( ! empty( $_GET['redirect_to'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
 			$target = wp_validate_redirect( esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ), '' ); // phpcs:ignore WordPress.Security.NonceVerification
@@ -129,6 +129,10 @@ class MLA_Frontend {
 		}
 		$account = wc_get_page_permalink( 'myaccount' );
 		if ( empty( $redirect ) || untrailingslashit( $redirect ) === untrailingslashit( $account ) ) {
+			// L'équipe du site arrive sur le tableau de bord WordPress, les élèves sur leurs formations.
+			if ( $user instanceof WP_User && user_can( $user, 'edit_posts' ) ) {
+				return admin_url();
+			}
 			return self::list_url();
 		}
 		return $redirect;
