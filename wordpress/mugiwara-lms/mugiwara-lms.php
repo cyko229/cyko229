@@ -17,6 +17,7 @@ define( 'MLA_FILE', __FILE__ );
 define( 'MLA_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MLA_URL', plugin_dir_url( __FILE__ ) );
 
+require_once MLA_DIR . 'includes/class-mla-icons.php';
 require_once MLA_DIR . 'includes/class-mla-drive.php';
 require_once MLA_DIR . 'includes/class-mla-courses.php';
 require_once MLA_DIR . 'includes/class-mla-access.php';
@@ -25,6 +26,7 @@ require_once MLA_DIR . 'includes/class-mla-admin.php';
 require_once MLA_DIR . 'includes/class-mla-rest.php';
 require_once MLA_DIR . 'includes/class-mla-mail.php';
 require_once MLA_DIR . 'includes/class-mla-activation.php';
+require_once MLA_DIR . 'includes/class-mla-resources.php';
 
 /**
  * Lit un réglage du plugin.
@@ -66,6 +68,7 @@ add_action(
 		MLA_Frontend::init();
 		MLA_Rest::init();
 		MLA_Activation::init();
+		MLA_Resources::init();
 	}
 );
 

@@ -53,7 +53,7 @@ $edit_url = $v['order'] ? MLA_Activation::url( array( 'commande' => $v['order']-
 			<div class="mla-activation__courses">
 				<span class="mla-eyebrow">Vos formations</span>
 				<?php foreach ( $courses as $title ) : ?>
-					<div>🎓 <?php echo esc_html( $title ); ?></div>
+					<div><?php echo MLA_Icons::get( 'cap', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo esc_html( $title ); ?></div>
 				<?php endforeach; ?>
 			</div>
 		<?php endif; ?>

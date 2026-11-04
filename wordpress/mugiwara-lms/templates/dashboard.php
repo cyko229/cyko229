@@ -18,7 +18,7 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 <div class="mla mla-dashboard">
 	<header class="mla-hero">
 		<div>
-			<p class="mla-hero__hello">Bonjour <?php echo esc_html( $user->first_name ?: $user->display_name ); ?> 👋</p>
+			<p class="mla-hero__hello">Bonjour <?php echo esc_html( $user->first_name ?: $user->display_name ); ?></p>
 			<h2 class="mla-hero__title">Mes formations</h2>
 		</div>
 		<?php if ( $cards ) : ?>
@@ -40,13 +40,13 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 				<strong><?php echo esc_html( $resume['title'] ); ?></strong>
 				<div class="mla-bar"><span style="width:<?php echo (int) $resume['progress']['percent']; ?>%"></span></div>
 			</div>
-			<span class="mla-btn">▶ Continuer</span>
+			<span class="mla-btn"><?php echo MLA_Icons::get( 'play', 14 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Continuer</span>
 		</a>
 	<?php endif; ?>
 
 	<?php if ( ! $cards ) : ?>
 		<div class="mla-empty">
-			<div class="mla-empty__icon">🎓</div>
+			<div class="mla-empty__icon"><?php echo MLA_Icons::get( 'cap', 40 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 			<h3>Vous n’avez pas encore de formation</h3>
 			<p>Dès votre premier achat, vos formations apparaîtront ici, prêtes à être suivies et téléchargées.</p>
 			<a class="mla-btn" href="<?php echo esc_url( $shop_url ); ?>">Découvrir les formations</a>
@@ -69,13 +69,13 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 					<select data-mla-sort aria-label="Trier les formations">
 						<option value="recent">Consultées récemment</option>
 						<option value="progress">Progression</option>
-						<option value="title">Titre (A → Z)</option>
+						<option value="title">Titre (A à Z)</option>
 						<option value="enrolled">Date d’achat</option>
 					</select>
 				</label>
 				<div class="mla-view" role="group" aria-label="Affichage">
-					<button type="button" class="is-active" data-mla-view="grid" aria-label="Affichage en grille" title="Grille">▦</button>
-					<button type="button" data-mla-view="list" aria-label="Affichage en liste" title="Liste">☰</button>
+					<button type="button" class="is-active" data-mla-view="grid" aria-label="Affichage en grille" title="Grille"><?php echo MLA_Icons::get( 'grid', 17 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+					<button type="button" data-mla-view="list" aria-label="Affichage en liste" title="Liste"><?php echo MLA_Icons::get( 'list', 17 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 				</div>
 			</div>
 			<div class="mla-toolbar mla-toolbar--sub">
@@ -100,10 +100,10 @@ $resume        = current( array_filter( $cards, function ( $c ) { return 'Repren
 						<?php if ( $card['image'] ) : ?>
 							<img src="<?php echo esc_url( $card['image'] ); ?>" alt="" loading="lazy">
 						<?php else : ?>
-							<span class="mla-card__placeholder">🎓</span>
+							<span class="mla-card__placeholder"><?php echo MLA_Icons::get( 'cap', 44 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 						<?php endif; ?>
 						<?php if ( 'Revoir' === $card['cta'] ) : ?>
-							<span class="mla-badge mla-badge--done">✓ Terminée</span>
+							<span class="mla-badge mla-badge--done"><?php echo MLA_Icons::get( 'check', 12 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Terminée</span>
 						<?php elseif ( 'Commencer' === $card['cta'] ) : ?>
 							<span class="mla-badge">Nouveau</span>
 						<?php endif; ?>

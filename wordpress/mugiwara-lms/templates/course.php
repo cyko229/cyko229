@@ -16,17 +16,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$icons = array(
-	'video'    => '▶',
-	'audio'    => '♪',
-	'pdf'      => '📄',
-	'document' => '📝',
-	'image'    => '🖼',
-	'folder'   => '📁',
-	'archive'  => '🗜',
-	'link'     => '🔗',
-);
-
 $index  = array_search( $current, wp_list_pluck( $lessons, 'id' ), true );
 $lesson = false === $index ? null : $lessons[ $index ];
 $prev   = false !== $index && $index > 0 ? $lessons[ $index - 1 ] : null;
@@ -36,27 +25,28 @@ $about  = apply_filters( 'the_content', $course->post_content );
 ?>
 <div class="mla mla-player" data-mla-player="<?php echo esc_attr( wp_json_encode( $config ) ); ?>">
 	<header class="mla-player__top">
-		<a class="mla-back" href="<?php echo esc_url( $back_url ); ?>">← Mes formations</a>
+		<a class="mla-back" href="<?php echo esc_url( $back_url ); ?>"><?php echo MLA_Icons::get( 'arrow-left', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Mes formations</a>
 		<h2 class="mla-player__title"><?php echo esc_html( get_the_title( $course ) ); ?></h2>
 		<div class="mla-player__progress">
 			<div class="mla-bar"><span data-mla-bar style="width:<?php echo (int) $progress['percent']; ?>%"></span></div>
 			<span data-mla-count><?php echo (int) $progress['count']; ?>/<?php echo (int) $progress['total']; ?> leçons · <?php echo (int) $progress['percent']; ?>%</span>
 		</div>
 		<?php if ( $download_all ) : ?>
-			<a class="mla-btn mla-btn--ghost" href="<?php echo esc_url( $download_all ); ?>" target="_blank" rel="noopener">⬇ Télécharger la formation</a>
+			<a class="mla-btn mla-btn--ghost" href="<?php echo esc_url( $download_all ); ?>" target="_blank" rel="noopener"><?php echo MLA_Icons::get( 'download', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Télécharger la formation</a>
 		<?php endif; ?>
-		<button type="button" class="mla-btn mla-btn--ghost mla-toggle-outline" data-mla-outline-toggle aria-expanded="false">☰ Sommaire</button>
+		<button type="button" class="mla-btn mla-btn--ghost mla-toggle-outline" data-mla-outline-toggle aria-expanded="false"><?php echo MLA_Icons::get( 'list', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Sommaire</button>
 	</header>
 
 	<div class="mla-player__layout">
 		<main class="mla-stage">
 			<?php if ( ! $lesson ) : ?>
 				<div class="mla-empty">
-					<div class="mla-empty__icon">🛠</div>
+					<div class="mla-empty__icon"><?php echo MLA_Icons::get( 'hourglass', 36 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 					<h3>Le contenu arrive bientôt</h3>
 					<p>Cette formation est en cours de préparation. Les ressources ci-dessous sont déjà disponibles.</p>
 				</div>
 			<?php else : ?>
+				<div class="mla-viewer-wrap">
 				<div class="mla-viewer mla-viewer--<?php echo esc_attr( $lesson['type'] ); ?>" data-mla-viewer>
 					<?php if ( $lesson['embed'] ) : ?>
 						<iframe src="<?php echo esc_url( $lesson['embed'] ); ?>" title="<?php echo esc_attr( $lesson['title'] ); ?>" allow="autoplay; fullscreen; encrypted-media" allowfullscreen loading="lazy"></iframe>
@@ -67,24 +57,27 @@ $about  = apply_filters( 'the_content', $course->post_content );
 						</div>
 					<?php endif; ?>
 				</div>
+				<?php $is_video = 'video' === $lesson['type']; ?>
+				<a class="mla-viewer__dl" data-mla-viewer-dl href="<?php echo esc_url( $lesson['download'] ?: '#' ); ?>" target="_blank" rel="noopener" title="Télécharger la vidéo" aria-label="Télécharger la vidéo" <?php echo $is_video && $lesson['download'] ? '' : 'hidden'; ?>><?php echo MLA_Icons::get( 'download', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+				</div>
 
 				<div class="mla-lesson-head">
 					<div>
 						<span class="mla-eyebrow" data-mla-module><?php echo esc_html( $lesson['module'] ); ?></span>
 						<h3 class="mla-lesson-title" data-mla-title><?php echo esc_html( $lesson['title'] ); ?></h3>
-						<span class="mla-lesson-duration" data-mla-duration><?php echo esc_html( $lesson['duration'] ? '⏱ ' . $lesson['duration'] : '' ); ?></span>
+						<span class="mla-lesson-duration" data-mla-duration><?php echo $lesson['duration'] ? MLA_Icons::get( 'clock', 14 ) . ' ' . esc_html( $lesson['duration'] ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 					</div>
 					<div class="mla-lesson-actions">
-						<a class="mla-btn mla-btn--ghost" data-mla-download href="<?php echo esc_url( $lesson['download'] ?: '#' ); ?>" target="_blank" rel="noopener" <?php echo $lesson['download'] ? '' : 'hidden'; ?>>⬇ Télécharger</a>
+						<a class="mla-btn mla-btn--ghost" data-mla-download href="<?php echo esc_url( $lesson['download'] ?: '#' ); ?>" target="_blank" rel="noopener" <?php echo $lesson['download'] && ! $is_video ? '' : 'hidden'; ?>><?php echo MLA_Icons::get( 'download', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Télécharger</a>
 						<button type="button" class="mla-btn mla-done-btn<?php echo isset( $done[ $lesson['id'] ] ) ? ' is-done' : ''; ?>" data-mla-done>
-							<?php echo isset( $done[ $lesson['id'] ] ) ? '✓ Terminée' : 'Marquer comme terminée'; ?>
+							<?php echo isset( $done[ $lesson['id'] ] ) ? MLA_Icons::get( 'check', 16 ) . ' Terminée' : 'Marquer comme terminée'; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 						</button>
 					</div>
 				</div>
 
 				<nav class="mla-pager">
-					<a class="mla-pager__prev" data-mla-prev href="<?php echo $prev ? esc_url( add_query_arg( 'lecon', $prev['id'] ) ) : '#'; ?>" <?php echo $prev ? '' : 'hidden'; ?>>← Précédente</a>
-					<a class="mla-pager__next" data-mla-next href="<?php echo $next ? esc_url( add_query_arg( 'lecon', $next['id'] ) ) : '#'; ?>" <?php echo $next ? '' : 'hidden'; ?>>Suivante →</a>
+					<a class="mla-pager__prev" data-mla-prev href="<?php echo $prev ? esc_url( add_query_arg( 'lecon', $prev['id'] ) ) : '#'; ?>" <?php echo $prev ? '' : 'hidden'; ?>><?php echo MLA_Icons::get( 'arrow-left', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Précédente</a>
+					<a class="mla-pager__next" data-mla-next href="<?php echo $next ? esc_url( add_query_arg( 'lecon', $next['id'] ) ) : '#'; ?>" <?php echo $next ? '' : 'hidden'; ?>>Suivante <?php echo MLA_Icons::get( 'arrow-right', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 				</nav>
 			<?php endif; ?>
 
@@ -105,20 +98,20 @@ $about  = apply_filters( 'the_content', $course->post_content );
 					<ul class="mla-resources">
 						<?php foreach ( $resources as $res ) : ?>
 							<li>
-								<span class="mla-resources__icon"><?php echo 'folder' === $res['kind'] ? '📁' : '📎'; ?></span>
+								<span class="mla-resources__icon"><?php echo MLA_Icons::get( 'folder' === $res['kind'] ? 'folder' : ( 'link' === $res['kind'] ? 'link' : 'paperclip' ), 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 								<div>
 									<strong><?php echo esc_html( $res['title'] ); ?></strong>
 									<?php if ( $res['note'] ) : ?>
 										<small><?php echo esc_html( $res['note'] ); ?></small>
 									<?php endif; ?>
 								</div>
-								<a class="mla-btn mla-btn--ghost" href="<?php echo esc_url( $res['download'] ?: $res['url'] ); ?>" target="_blank" rel="noopener"><?php echo 'link' === $res['kind'] ? 'Ouvrir' : '⬇ Télécharger'; ?></a>
+								<a class="mla-btn mla-btn--ghost" href="<?php echo esc_url( $res['download'] ?: $res['url'] ); ?>" target="_blank" rel="noopener"><?php echo 'link' === $res['kind'] ? MLA_Icons::get( 'external', 16 ) . '<span>Ouvrir</span>' : MLA_Icons::get( 'download', 16 ) . '<span>Télécharger</span>'; // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 							</li>
 						<?php endforeach; ?>
 					</ul>
 				<?php endif; ?>
 				<?php if ( $download_all ) : ?>
-					<p class="mla-download-all"><a class="mla-btn" href="<?php echo esc_url( $download_all ); ?>" target="_blank" rel="noopener">⬇ Télécharger toute la formation</a></p>
+					<p class="mla-download-all"><a class="mla-btn" href="<?php echo esc_url( $download_all ); ?>" target="_blank" rel="noopener"><?php echo MLA_Icons::get( 'download', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> Télécharger toute la formation</a></p>
 				<?php endif; ?>
 			</section>
 
@@ -130,7 +123,7 @@ $about  = apply_filters( 'the_content', $course->post_content );
 		<aside class="mla-outline" data-mla-outline>
 			<div class="mla-outline__head">
 				<strong>Sommaire</strong>
-				<button type="button" class="mla-outline__close" data-mla-outline-toggle aria-label="Fermer le sommaire">✕</button>
+				<button type="button" class="mla-outline__close" data-mla-outline-toggle aria-label="Fermer le sommaire"><?php echo MLA_Icons::get( 'x', 20 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 			</div>
 			<?php foreach ( $structure['modules'] as $m => $module ) : ?>
 				<?php
@@ -142,7 +135,8 @@ $about  = apply_filters( 'the_content', $course->post_content );
 					<summary>
 						<span class="mla-module__index"><?php echo (int) $m + 1; ?></span>
 						<span class="mla-module__title"><?php echo esc_html( $module['title'] ); ?></span>
-						<span class="mla-module__count" data-mla-module-count="<?php echo esc_attr( $module['id'] ); ?>"><?php echo (int) $mod_done; ?>/<?php echo count( $ids ); ?></span>
+						<span class="mla-module__chevron" aria-hidden="true"><?php echo MLA_Icons::get( 'chevron-down', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+							<span class="mla-module__count" data-mla-module-count="<?php echo esc_attr( $module['id'] ); ?>"><?php echo (int) $mod_done; ?>/<?php echo count( $ids ); ?></span>
 					</summary>
 					<ol class="mla-lessons">
 						<?php foreach ( $module['lessons'] as $item ) : ?>
@@ -150,8 +144,8 @@ $about  = apply_filters( 'the_content', $course->post_content );
 								<a href="<?php echo esc_url( add_query_arg( 'lecon', $item['id'] ) ); ?>"
 									class="mla-lesson<?php echo $item['id'] === $current ? ' is-current' : ''; ?><?php echo isset( $done[ $item['id'] ] ) ? ' is-done' : ''; ?>"
 									data-mla-lesson="<?php echo esc_attr( $item['id'] ); ?>" data-mla-in-module="<?php echo esc_attr( $module['id'] ); ?>">
-									<span class="mla-lesson__check" aria-hidden="true"></span>
-									<span class="mla-lesson__icon" aria-hidden="true"><?php echo esc_html( $icons[ $item['type'] ] ?? '▶' ); ?></span>
+									<span class="mla-lesson__check" aria-hidden="true"><?php echo MLA_Icons::get( 'check', 11 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
+									<span class="mla-lesson__icon" aria-hidden="true"><?php echo MLA_Icons::for_type( $item['type'], 15 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 									<span class="mla-lesson__title"><?php echo esc_html( $item['title'] ); ?></span>
 									<?php if ( $item['duration'] ) : ?>
 										<span class="mla-lesson__duration"><?php echo esc_html( $item['duration'] ); ?></span>

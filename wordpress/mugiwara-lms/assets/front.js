@@ -4,6 +4,16 @@
 
 	function $(sel, root) { return (root || document).querySelector(sel); }
 	function $$(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+	// Icônes SVG (mêmes tracés que MLA_Icons côté PHP).
+	var ICON = {
+		check: '<path d="M20 6 9 17l-5-5"/>',
+		clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+		left: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+		right: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>'
+	};
+	function icon(name, size) {
+		return '<svg class="mla-icon" width="' + (size || 16) + '" height="' + (size || 16) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[name] + '</svg>';
+	}
 	function norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
 	/* ---------------- Tableau de bord ---------------- */
@@ -40,7 +50,7 @@
 			function btn(label, page, opts) {
 				var b = document.createElement('button');
 				b.type = 'button';
-				b.textContent = label;
+				if (label === 'prev' || label === 'next') { b.innerHTML = icon(label === 'prev' ? 'left' : 'right', 16); } else { b.textContent = label; }
 				b.disabled = !!(opts && opts.disabled);
 				if (opts && opts.current) { b.className = 'is-active'; b.setAttribute('aria-current', 'page'); }
 				if (opts && opts.label) { b.setAttribute('aria-label', opts.label); }
@@ -51,9 +61,9 @@
 				});
 				pager.appendChild(b);
 			}
-			btn('←', state.page - 1, { disabled: state.page === 1, label: 'Page précédente' });
+			btn('prev', state.page - 1, { disabled: state.page === 1, label: 'Page précédente' });
 			for (var i = 1; i <= pages; i++) { btn(String(i), i, { current: i === state.page }); }
-			btn('→', state.page + 1, { disabled: state.page === pages, label: 'Page suivante' });
+			btn('next', state.page + 1, { disabled: state.page === pages, label: 'Page suivante' });
 		}
 
 		function apply() {
@@ -138,6 +148,7 @@
 			duration: $('[data-mla-duration]', root),
 			description: $('[data-mla-description]', root),
 			download: $('[data-mla-download]', root),
+			viewerDl: $('[data-mla-viewer-dl]', root),
 			doneBtn: $('[data-mla-done]', root),
 			prev: $('[data-mla-prev]', root),
 			next: $('[data-mla-next]', root),
@@ -214,7 +225,7 @@
 			if (!el.doneBtn) { return; }
 			var isDone = !!done[current.id];
 			el.doneBtn.classList.toggle('is-done', isDone);
-			el.doneBtn.textContent = isDone ? '✓ Terminée' : 'Marquer comme terminée';
+			el.doneBtn.innerHTML = isDone ? icon('check', 16) + ' Terminée' : 'Marquer comme terminée';
 		}
 
 		function setPager(a, l) {
@@ -228,14 +239,26 @@
 			renderViewer(l);
 			if (el.title) { el.title.textContent = l.title; }
 			if (el.module) { el.module.textContent = l.module; }
-			if (el.duration) { el.duration.textContent = l.duration ? '⏱ ' + l.duration : ''; }
+			if (el.duration) {
+				el.duration.innerHTML = '';
+				if (l.duration) {
+					el.duration.innerHTML = icon('clock', 14) + ' ';
+					el.duration.appendChild(document.createTextNode(l.duration));
+				}
+			}
 			if (el.description) {
 				var hasText = l.description && l.description.replace(/<[^>]*>/g, '').trim();
 				el.description.innerHTML = hasText ? l.description : '<p class="mla-muted">Aucune note pour cette leçon.</p>';
 			}
+			// Vidéo : petite icône sur le lecteur (au survol, sur ordinateur) ; autres contenus : bouton sous le lecteur.
+			var isVideo = l.type === 'video';
 			if (el.download) {
-				el.download.hidden = !l.download;
+				el.download.hidden = !l.download || isVideo;
 				el.download.href = l.download || '#';
+			}
+			if (el.viewerDl) {
+				el.viewerDl.hidden = !l.download || !isVideo;
+				el.viewerDl.href = l.download || '#';
 			}
 			setPager(el.prev, lessons[l.index - 1]);
 			setPager(el.next, lessons[l.index + 1]);
@@ -321,5 +344,33 @@
 	function ready(fn) {
 		if (document.readyState !== 'loading') { fn(); } else { document.addEventListener('DOMContentLoaded', fn); }
 	}
-	ready(function () { initDashboard(); initPlayer(); });
+	/* ---------------- Page Ressources ---------------- */
+
+	function initResources() {
+		var grid = $('[data-mla-res-grid]');
+		if (!grid) { return; }
+		var search = $('[data-mla-res-search]');
+		var empty = $('[data-mla-res-noresult]');
+		var filter = 'all';
+		function apply() {
+			var q = norm(search ? search.value : '');
+			var shown = 0;
+			$$('.mla-res-card', grid).forEach(function (card) {
+				var ok = (!q || card.dataset.title.indexOf(q) !== -1) && (filter === 'all' || card.dataset.type === filter);
+				card.hidden = !ok;
+				if (ok) { shown++; }
+			});
+			if (empty) { empty.hidden = shown > 0; }
+		}
+		if (search) { search.addEventListener('input', apply); }
+		$$('[data-mla-res-filter]').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				filter = btn.dataset.mlaResFilter;
+				$$('[data-mla-res-filter]').forEach(function (b) { b.classList.toggle('is-active', b === btn); });
+				apply();
+			});
+		});
+	}
+
+	ready(function () { initDashboard(); initPlayer(); initResources(); });
 })();

@@ -171,7 +171,7 @@ class MLA_Mail {
 		$content = '<p>Bonne nouvelle : les e-mails de <strong>' . esc_html( get_bloginfo( 'name' ) ) . '</strong> partent bien par le serveur SMTP de votre boîte <strong>' . esc_html( self::from_email( '' ) ) . '</strong>.</p>'
 			. '<p>Commandes, création de compte, mot de passe oublié, accès aux formations : vos clients recevront désormais tous leurs e-mails avec ce design.</p>'
 			. self::button( home_url( '/' ), 'Visiter le site' );
-		$ok = wp_mail( $to, 'Test d’envoi des e-mails', self::layout( 'Les e-mails fonctionnent ✅', $content ), array( 'Content-Type: text/html; charset=UTF-8' ) );
+		$ok = wp_mail( $to, 'Test d’envoi des e-mails', self::layout( 'Les e-mails fonctionnent', $content ), array( 'Content-Type: text/html; charset=UTF-8' ) );
 		return array(
 			'sent'  => (bool) $ok,
 			'to'    => $to,

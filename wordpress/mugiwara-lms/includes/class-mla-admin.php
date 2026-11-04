@@ -70,7 +70,7 @@ class MLA_Admin {
 			<input type="hidden" name="mla_structure" value="<?php echo esc_attr( wp_json_encode( $structure ) ); ?>" data-mla-structure>
 
 			<div class="mla-admin__import">
-				<h4>⚡ Importer depuis Google Drive</h4>
+				<h4>Importer depuis Google Drive</h4>
 				<p class="description">
 					Collez le lien d’un ou plusieurs dossiers Drive (un par ligne), partagés en « Tous les utilisateurs disposant du lien ».
 					Chaque sous-dossier devient un module, chaque fichier une leçon ; un sous-dossier « Ressources » ou « Bonus » alimente l’onglet Ressources.
@@ -369,7 +369,7 @@ class MLA_Admin {
 			<?php $mail = MLA_Mail::public_settings(); ?>
 			<p>Les e-mails du site (commandes, compte, mot de passe, accès aux formations) partent par la boîte mail de votre domaine, avec le gabarit aux couleurs du site.
 				<?php if ( $mail['configured'] ) : ?>
-					<strong style="color:#007017">✓ SMTP configuré</strong>
+					<strong style="color:#007017">SMTP configuré</strong>
 				<?php else : ?>
 					<strong style="color:#b32d2e">SMTP non configuré : les e-mails risquent de ne pas arriver.</strong>
 				<?php endif; ?>

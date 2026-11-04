@@ -62,7 +62,7 @@
 					'<textarea rows="3" placeholder="Résumé, points clés, consignes…" data-field="description">' + esc(l.description) + '</textarea>' +
 				'</details>' +
 			'</div>' +
-			'<button type="button" class="button-link mla-remove" data-remove-lesson title="Supprimer la leçon">✕</button>' +
+			'<button type="button" class="button-link mla-remove" data-remove-lesson title="Supprimer la leçon"><span class="dashicons dashicons-no-alt"></span></button>' +
 		'</div>';
 	}
 
@@ -75,7 +75,7 @@
 				'<input type="text" class="mla-module-title" placeholder="Titre du module" value="' + esc(m.title) + '" data-module-title>' +
 				'<span class="mla-module-card__count">' + m.lessons.length + ' leçon' + (m.lessons.length > 1 ? 's' : '') + '</span>' +
 				'<button type="button" class="button-link" data-toggle-module>' + (open ? 'Replier' : 'Déplier') + '</button>' +
-				'<button type="button" class="button-link mla-remove" data-remove-module title="Supprimer le module">✕</button>' +
+				'<button type="button" class="button-link mla-remove" data-remove-module title="Supprimer le module"><span class="dashicons dashicons-no-alt"></span></button>' +
 			'</div>' +
 			'<div class="mla-module-card__body"' + (open ? '' : ' hidden') + '>' +
 				'<div class="mla-lessons-list">' + m.lessons.map(function (l, li) { return lessonRow(l, mi, li); }).join('') + '</div>' +
@@ -92,7 +92,7 @@
 			'<input type="url" placeholder="Lien Google Drive ou URL" value="' + esc(r.url) + '" data-rfield="url">' +
 			'<input type="text" placeholder="Note (facultatif)" value="' + esc(r.note) + '" data-rfield="note">' +
 			'<span class="mla-kind' + (k ? '' : ' is-empty') + '">' + esc(k || 'Aucun lien') + '</span>' +
-			'<button type="button" class="button-link mla-remove" data-remove-resource>✕</button>' +
+			'<button type="button" class="button-link mla-remove" data-remove-resource title="Supprimer la ressource"><span class="dashicons dashicons-no-alt"></span></button>' +
 		'</div>';
 	}
 
@@ -243,7 +243,7 @@
 				render();
 				var count = state.modules.reduce(function (n, m) { return n + m.lessons.length; }, 0);
 				status.className = 'mla-admin__status is-ok';
-				status.textContent = '✓ ' + state.modules.length + ' modules, ' + count + ' leçons et ' + state.resources.length + ' ressources importés. Vérifiez puis cliquez sur « Mettre à jour ».';
+				status.textContent = 'Import réussi : ' + state.modules.length + ' modules, ' + count + ' leçons et ' + state.resources.length + ' ressources importés. Vérifiez puis cliquez sur « Mettre à jour ».';
 			})
 			.fail(function (xhr) {
 				status.className = 'mla-admin__status is-error';
