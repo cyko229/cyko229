@@ -448,5 +448,72 @@
 		});
 	}
 
-	ready(function () { initDashboard(); initPlayer(); initResources(); initAffiliate(); });
+	/* ---------------- Menu principal ---------------- */
+
+	function initMenu() {
+		$$('[data-mla-menu]').forEach(function (menu) {
+			var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+			$$('[data-mla-mega]', menu).forEach(function (item) {
+				var link = item.querySelector('.mla-menu__link');
+				var timer;
+				function open(state) {
+					$$('[data-mla-mega].is-open', menu).forEach(function (o) { if (o !== item) { o.classList.remove('is-open'); o.querySelector('.mla-menu__link').setAttribute('aria-expanded', 'false'); } });
+					if (state) { fit(); }
+					item.classList.toggle('is-open', state);
+					link.setAttribute('aria-expanded', state ? 'true' : 'false');
+				}
+				// Garde le méga-menu entièrement visible, même si le lien est près du bord de l'écran.
+				function fit() {
+					var mega = item.querySelector('.mla-mega');
+					if (!mega) { return; }
+					mega.style.setProperty('--mla-shift', '0px');
+					var r = mega.getBoundingClientRect();
+					var shift = 0;
+					if (r.left < 12) { shift = 12 - r.left; }
+					else if (r.right > window.innerWidth - 12) { shift = window.innerWidth - 12 - r.right; }
+					mega.style.setProperty('--mla-shift', Math.round(shift) + 'px');
+				}
+				if (canHover) {
+					item.addEventListener('mouseenter', function () { clearTimeout(timer); timer = setTimeout(function () { open(true); }, 80); });
+					item.addEventListener('mouseleave', function () { clearTimeout(timer); timer = setTimeout(function () { open(false); }, 180); });
+				} else {
+					// Écran tactile : premier appui ouvre le méga-menu, deuxième appui suit le lien.
+					link.addEventListener('click', function (e) {
+						if (!item.classList.contains('is-open')) { e.preventDefault(); open(true); }
+					});
+				}
+				item.addEventListener('focusin', function () { open(true); });
+				item.addEventListener('focusout', function (e) { if (!item.contains(e.relatedTarget)) { open(false); } });
+				item.addEventListener('keydown', function (e) { if (e.key === 'Escape') { open(false); link.focus(); } });
+				// Survol d'une catégorie : ses formations s'affichent à droite.
+				$$('[data-mla-mega-tab]', item).forEach(function (tab) {
+					function show() {
+						$$('[data-mla-mega-tab]', item).forEach(function (t) { t.classList.toggle('is-active', t === tab); });
+						$$('[data-mla-mega-panel]', item).forEach(function (p) { p.hidden = p.dataset.mlaMegaPanel !== tab.dataset.mlaMegaTab; });
+					}
+					tab.addEventListener('mouseenter', show);
+					tab.addEventListener('focus', show);
+					tab.addEventListener('click', show);
+				});
+			});
+			document.addEventListener('click', function (e) {
+				if (!menu.contains(e.target)) { $$('[data-mla-mega].is-open', menu).forEach(function (o) { o.classList.remove('is-open'); }); }
+			});
+
+			var toggle = $('[data-mla-menu-toggle]', menu);
+			var panel = $('[data-mla-menu-panel]', menu);
+			if (toggle && panel) {
+				function setPanel(state) {
+					panel.hidden = !state;
+					toggle.setAttribute('aria-expanded', state ? 'true' : 'false');
+					menu.classList.toggle('is-panel-open', state);
+				}
+				toggle.addEventListener('click', function () { setPanel(panel.hidden); });
+				document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setPanel(false); toggle.focus(); } });
+				document.addEventListener('click', function (e) { if (!panel.hidden && !menu.contains(e.target)) { setPanel(false); } });
+			}
+		});
+	}
+
+	ready(function () { initDashboard(); initPlayer(); initResources(); initAffiliate(); initMenu(); });
 })();
