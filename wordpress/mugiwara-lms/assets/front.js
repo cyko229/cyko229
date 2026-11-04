@@ -372,5 +372,81 @@
 		});
 	}
 
-	ready(function () { initDashboard(); initPlayer(); initResources(); });
+	/* ---------------- Parrainage ---------------- */
+
+	function copyText(text, btn) {
+		var done = function () {
+			var label = btn.querySelector('span');
+			var before = label ? label.textContent : '';
+			btn.classList.add('is-copied');
+			if (label) { label.textContent = 'Copié !'; }
+			setTimeout(function () { btn.classList.remove('is-copied'); if (label) { label.textContent = before; } }, 1600);
+		};
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+		} else { fallback(); }
+		function fallback() {
+			var t = document.createElement('textarea');
+			t.value = text; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+			document.body.appendChild(t); t.select();
+			try { document.execCommand('copy'); done(); } catch (e) {}
+			document.body.removeChild(t);
+		}
+	}
+
+	function initAffiliate() {
+		var root = $('.mla-aff');
+		if (!root) { return; }
+		var tabs = $$('[data-mla-aff-tab]', root);
+		function openTab(name) {
+			if (!$('[data-mla-aff-panel="' + name + '"]', root)) { return; }
+			tabs.forEach(function (t) { t.classList.toggle('is-active', t.dataset.mlaAffTab === name); });
+			$$('[data-mla-aff-panel]', root).forEach(function (p) {
+				var on = p.dataset.mlaAffPanel === name;
+				p.hidden = !on; p.classList.toggle('is-active', on);
+			});
+		}
+		tabs.forEach(function (t) {
+			t.addEventListener('click', function () {
+				openTab(t.dataset.mlaAffTab);
+				history.replaceState(null, '', '#' + t.dataset.mlaAffTab);
+			});
+		});
+		var wanted = (window.location.hash || '').replace('#', '') || new URL(window.location.href).searchParams.get('onglet');
+		if (wanted) { openTab(wanted); }
+
+		root.addEventListener('click', function (e) {
+			var btn = e.target.closest('[data-mla-copy-btn]');
+			if (btn) {
+				var input = btn.closest('[data-mla-copy]').querySelector('input');
+				input.select();
+				copyText(input.value, btn);
+				return;
+			}
+			var direct = e.target.closest('[data-mla-copy-text]');
+			if (direct) { copyText(direct.dataset.mlaCopyText, direct); }
+		});
+
+		var search = $('[data-mla-aff-search]', root);
+		if (search) {
+			search.addEventListener('input', function () {
+				var q = norm(search.value);
+				$$('[data-mla-aff-products] li', root).forEach(function (li) { li.hidden = q && li.dataset.search.indexOf(q) === -1; });
+			});
+		}
+
+		// Équivalent en FCFA des Berry saisis.
+		var value = parseFloat(root.dataset.mlaBerryValue) || 100;
+		$$('[data-mla-berry-form]', root).forEach(function (form) {
+			var input = $('[data-mla-berry-input]', form);
+			var out = $('[data-mla-berry-fcfa]', form);
+			if (!input || !out) { return; }
+			input.addEventListener('input', function () {
+				var fcfa = Math.round((parseFloat(input.value) || 0) * value);
+				out.textContent = fcfa.toLocaleString('fr-FR') + ' FCFA';
+			});
+		});
+	}
+
+	ready(function () { initDashboard(); initPlayer(); initResources(); initAffiliate(); });
 })();

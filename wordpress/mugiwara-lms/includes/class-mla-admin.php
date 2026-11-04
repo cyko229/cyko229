@@ -283,14 +283,14 @@ class MLA_Admin {
 			'mla_settings',
 			array(
 				'sanitize_callback' => function ( $input ) {
-					return array(
+					return array_merge( (array) get_option( 'mla_settings', array() ), array(
 						'drive_api_key'      => sanitize_text_field( $input['drive_api_key'] ?? '' ),
 						'accent'             => sanitize_hex_color( $input['accent'] ?? '' ) ?: '#1E4DF0',
 						'grant_processing'   => empty( $input['grant_processing'] ) ? 'no' : 'yes',
 						'redirect_dashboard' => empty( $input['redirect_dashboard'] ) ? 'no' : 'yes',
 						'block_repurchase'   => empty( $input['block_repurchase'] ) ? 'no' : 'yes',
 						'mail_logo'          => esc_url_raw( $input['mail_logo'] ?? mla_option( 'mail_logo' ) ),
-					);
+					) );
 				},
 			)
 		);

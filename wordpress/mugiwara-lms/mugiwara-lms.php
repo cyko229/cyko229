@@ -27,6 +27,8 @@ require_once MLA_DIR . 'includes/class-mla-rest.php';
 require_once MLA_DIR . 'includes/class-mla-mail.php';
 require_once MLA_DIR . 'includes/class-mla-activation.php';
 require_once MLA_DIR . 'includes/class-mla-resources.php';
+require_once MLA_DIR . 'includes/class-mla-affiliate.php';
+require_once MLA_DIR . 'includes/class-mla-affiliate-admin.php';
 
 /**
  * Lit un réglage du plugin.
@@ -69,6 +71,10 @@ add_action(
 		MLA_Rest::init();
 		MLA_Activation::init();
 		MLA_Resources::init();
+		MLA_Affiliate::init();
+		if ( is_admin() ) {
+			MLA_Affiliate_Admin::init();
+		}
 	}
 );
 
