@@ -80,6 +80,31 @@ class MLA_Drive {
 	}
 
 	/**
+	 * Flux d'une vidéo Drive pour la balise <video> (lecteur natif du téléphone ou du navigateur).
+	 * Avec une clé API Google, l'API Drive renvoie le bon type de fichier et accepte la lecture par morceaux ;
+	 * sans clé, on utilise le serveur de téléchargement de Drive (confirm=t évite la page d'avertissement des gros fichiers).
+	 */
+	public static function stream_url( $url ) {
+		$p = self::parse( $url );
+		if ( 'file' !== $p['kind'] ) {
+			return '';
+		}
+		$id  = rawurlencode( $p['id'] );
+		$key = mla_option( 'drive_api_key' );
+		return $key
+			? "https://www.googleapis.com/drive/v3/files/{$id}?alt=media&supportsAllDrives=true&key=" . rawurlencode( $key )
+			: "https://drive.usercontent.google.com/download?id={$id}&export=download&confirm=t";
+	}
+
+	/**
+	 * Image d'aperçu d'un fichier Drive partagé (miniature générée par Google).
+	 */
+	public static function poster_url( $url ) {
+		$p = self::parse( $url );
+		return 'file' === $p['kind'] ? 'https://drive.google.com/thumbnail?id=' . rawurlencode( $p['id'] ) . '&sz=w1280' : '';
+	}
+
+	/**
 	 * URL de téléchargement direct, ou chaîne vide si le lien n'est pas téléchargeable.
 	 * Un dossier renvoie vers Drive, qui propose « Tout télécharger » (archive ZIP).
 	 */

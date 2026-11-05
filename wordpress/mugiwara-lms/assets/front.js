@@ -151,7 +151,7 @@
 			viewerDl: $('[data-mla-viewer-dl]', root),
 			wrap: $('[data-mla-viewer-wrap]', root),
 			bar: $('[data-mla-viewer-bar]', root),
-			open: $('[data-mla-open]', root),
+			fsClose: $('[data-mla-fs-close]', root),
 			fullscreen: $('[data-mla-fullscreen]', root),
 			doneBtn: $('[data-mla-done]', root),
 			prev: $('[data-mla-prev]', root),
@@ -177,18 +177,51 @@
 			}).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
 		}
 
+		function frame(src, title) {
+			var f = document.createElement('iframe');
+			f.src = src;
+			f.title = title;
+			f.allow = 'autoplay; fullscreen; encrypted-media';
+			f.setAttribute('allowfullscreen', '');
+			return f;
+		}
+
+		// Vidéo Drive illisible par le lecteur natif (fichier non partagé, quota Google…) : retour au lecteur Drive.
+		function watchVideo(video) {
+			if (!video) { return; }
+			var fallback = function () {
+				var src = video.dataset.mlaFallback;
+				if (!src || !video.parentNode) { return; }
+				var holder = video.parentNode;
+				holder.replaceChild(frame(src, video.title || ''), video);
+				holder.classList.add('is-drive');
+				fitViewer();
+			};
+			video.addEventListener('error', fallback);
+			// L'erreur a pu survenir avant le chargement de ce script (vidéo affichée par le serveur).
+			if (video.error) { fallback(); }
+		}
+
 		function renderViewer(l) {
 			if (!el.viewer) { return; }
-			var isDrive = !!l.embed && l.embed.indexOf('drive.google.com/file/') !== -1;
+			var isDrive = !l.stream && !!l.embed && l.embed.indexOf('drive.google.com/file/') !== -1;
 			el.viewer.className = 'mla-viewer mla-viewer--' + l.type + (isDrive ? ' is-drive' : '');
 			el.viewer.innerHTML = '';
-			if (l.embed) {
-				var f = document.createElement('iframe');
-				f.src = l.embed;
-				f.title = l.title;
-				f.allow = 'autoplay; fullscreen; encrypted-media';
-				f.setAttribute('allowfullscreen', '');
-				el.viewer.appendChild(f);
+			if (l.stream) {
+				var v = document.createElement('video');
+				v.className = 'mla-video';
+				v.src = l.stream;
+				if (l.poster) { v.poster = l.poster; }
+				v.controls = true;
+				v.preload = 'metadata';
+				v.setAttribute('playsinline', '');
+				v.setAttribute('controlslist', 'nodownload');
+				v.title = l.title;
+				v.dataset.mlaFallback = l.embed || '';
+				el.viewer.appendChild(v);
+				watchVideo(v);
+			} else if (l.embed) {
+				el.viewer.appendChild(frame(l.embed, l.title));
 			} else {
 				var box = document.createElement('div');
 				box.className = 'mla-viewer__fallback';
@@ -223,22 +256,37 @@
 		window.addEventListener('resize', fitViewer);
 		window.addEventListener('orientationchange', function () { setTimeout(fitViewer, 250); });
 
+		function pseudoFullscreen(on) {
+			el.wrap.classList.toggle('is-pseudo-fs', on);
+			document.documentElement.classList.toggle('mla-noscroll', on);
+			if (el.fsClose) { el.fsClose.hidden = !on; }
+			fitViewer();
+		}
+
 		if (el.fullscreen && el.wrap) {
 			el.fullscreen.addEventListener('click', function () {
-				var target = el.wrap;
+				var video = el.viewer && el.viewer.querySelector('video');
+				var target = video || el.wrap;
 				var request = target.requestFullscreen || target.webkitRequestFullscreen;
-				if (!request) {
-					// iPhone : pas de plein écran pour un cadre intégré, on ouvre la vidéo dans Drive.
-					if (current && current.view) { window.open(current.view, '_blank', 'noopener'); }
+				if (request) {
+					var p = request.call(target);
+					var lock = function () {
+						if (screen.orientation && screen.orientation.lock && current && current.type === 'video') {
+							screen.orientation.lock('landscape').catch(function () {});
+						}
+					};
+					if (p && p.then) { p.then(lock).catch(function () { pseudoFullscreen(true); }); } else { lock(); }
 					return;
 				}
-				var p = request.call(target);
-				var lock = function () {
-					if (screen.orientation && screen.orientation.lock && current && current.type === 'video') {
-						screen.orientation.lock('landscape').catch(function () {});
-					}
-				};
-				if (p && p.then) { p.then(lock).catch(function () {}); } else { lock(); }
+				// iPhone : plein écran natif de la vidéo, ou à défaut le lecteur occupe tout l'écran.
+				if (video && video.webkitEnterFullscreen) {
+					try { video.webkitEnterFullscreen(); return; } catch (e) {}
+				}
+				pseudoFullscreen(true);
+			});
+			if (el.fsClose) { el.fsClose.addEventListener('click', function () { pseudoFullscreen(false); }); }
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' && el.wrap.classList.contains('is-pseudo-fs')) { pseudoFullscreen(false); }
 			});
 			var onFs = function () {
 				var on = !!(document.fullscreenElement || document.webkitFullscreenElement);
@@ -309,8 +357,8 @@
 				el.viewerDl.hidden = !l.download || !isVideo;
 				el.viewerDl.href = l.download || '#';
 			}
-			if (el.bar) { el.bar.hidden = !l.embed; }
-			if (el.open) { el.open.hidden = !l.view; el.open.href = l.view || '#'; }
+			if (el.bar) { el.bar.hidden = !l.embed && !l.stream; }
+			if (el.wrap && el.wrap.classList.contains('is-pseudo-fs') && !l.embed && !l.stream) { pseudoFullscreen(false); }
 			fitViewer();
 			setPager(el.prev, lessons[l.index - 1]);
 			setPager(el.next, lessons[l.index + 1]);
@@ -387,6 +435,7 @@
 			if (e.key === 'ArrowLeft' && lessons[current.index - 1]) { show(lessons[current.index - 1], true); }
 		});
 
+		watchVideo(el.viewer && el.viewer.querySelector('video'));
 		fitViewer();
 		if (current) {
 			history.replaceState({ lesson: current.id }, '', lessonUrl(current));
