@@ -278,7 +278,7 @@ class MLA_Affiliate {
 			'<p><strong>' . esc_html( $user->display_name ) . '</strong> (' . esc_html( $user->user_email ) . ') souhaite rejoindre le programme de parrainage.</p>'
 			. '<p>Téléphone : ' . esc_html( $data['phone'] ) . '<br>Canal : ' . esc_html( $data['channel'] ) . '</p>'
 			. ( $data['motivation'] ? '<p>« ' . esc_html( $data['motivation'] ) . ' »</p>' : '' )
-			. MLA_Mail::button( admin_url( 'admin.php?page=mla-affiliates' ), 'Valider ou refuser' )
+			. MLA_Mail::button( admin_url( 'admin.php?page=mla-aff-requests' ), 'Valider ou refuser' )
 		);
 	}
 
