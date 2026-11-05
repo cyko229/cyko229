@@ -62,8 +62,8 @@ $about  = apply_filters( 'the_content', $course->post_content );
 				<a class="mla-viewer__dl" data-mla-viewer-dl href="<?php echo esc_url( $lesson['download'] ?: '#' ); ?>" target="_blank" rel="noopener" title="Télécharger la vidéo" aria-label="Télécharger la vidéo" <?php echo $is_video && $lesson['download'] ? '' : 'hidden'; ?>><?php echo MLA_Icons::get( 'download', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 				</div>
 				<div class="mla-viewer-bar" data-mla-viewer-bar <?php echo $lesson['embed'] ? '' : 'hidden'; ?>>
-					<button type="button" class="mla-viewer-bar__btn" data-mla-fullscreen><?php echo MLA_Icons::get( 'maximize', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span>Plein écran</span></button>
-					<a class="mla-viewer-bar__btn" data-mla-open href="<?php echo esc_url( $lesson['view'] ?: '#' ); ?>" target="_blank" rel="noopener" <?php echo $lesson['view'] ? '' : 'hidden'; ?>><?php echo MLA_Icons::get( 'external', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span>Ouvrir dans Drive</span></a>
+					<button type="button" class="mla-viewer-bar__btn" data-mla-fullscreen title="Plein écran" aria-label="Plein écran"><?php echo MLA_Icons::get( 'maximize', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+					<a class="mla-viewer-bar__btn" data-mla-open href="<?php echo esc_url( $lesson['view'] ?: '#' ); ?>" target="_blank" rel="noopener" <?php echo $lesson['view'] ? '' : 'hidden'; ?> title="Ouvrir dans Drive" aria-label="Ouvrir dans Drive"><?php echo MLA_Icons::get( 'external', 18 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 				</div>
 
 				<div class="mla-lesson-head">

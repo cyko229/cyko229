@@ -507,3 +507,7 @@ body .mla .mla-viewer-bar__btn[hidden]{display:none}
 	.mla-pager{justify-content:space-between}
 }
 @media (max-width:768px){body .mla .mla-viewer-bar__btn{white-space:nowrap;font-size:13.5px;padding:8px 10px}}
+
+/* Boutons sous la vidéo : icônes seules, alignées à droite */
+.mla-viewer-bar{justify-content:flex-end;gap:8px}
+body .mla .mla-viewer-bar__btn{flex:none!important;width:40px;height:40px;min-height:0;padding:0!important;border-radius:50%;gap:0}
