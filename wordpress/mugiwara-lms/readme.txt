@@ -2,7 +2,7 @@
 Requires at least: 6.2
 Requires PHP: 7.4
 Requires Plugins: woocommerce
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 
 Transforme la boutique WooCommerce de Mugiwara Academy en plateforme de formation.
 
@@ -39,8 +39,6 @@ Organisation conseillée d'un dossier Drive :
   après paiement depuis « Mes téléchargements » (lien vérifié à chaque clic).
 * Parrainage : page « Parrainage » (adhésion, tableau de bord), menu d'administration Parrainage
   (demandes, parrains, retraits, réglages). 1 Berry = 100 FCFA, commission 20 %, seuil 50 Berry : réglables.
-* Menu : shortcode [mugiwara_menu] à placer dans l'en-tête Elementor (widget « Code court ») à la place du menu
-  actuel : méga-menus Formations et Catégories sur ordinateur, panneau compact et bouton « Mon compte » sur mobile.
 
 == Bon à savoir ==
 
@@ -48,5 +46,5 @@ Organisation conseillée d'un dossier Drive :
   écrits dans les boutons de téléchargement : ils passent par le site, qui vérifie l'achat. Le lecteur intégré, lui,
   laisse voir l'identifiant du fichier : un élève déterminé pourrait le partager.
 * Shortcodes : [mugiwara_formations] (espace élève), [mugiwara_ressources] (catalogue des ressources),
-  [mugiwara_parrainage] (programme de parrainage), [mugiwara_menu] (menu principal).
+  [mugiwara_parrainage] (programme de parrainage).
 * Les gabarits sont personnalisables : copiez templates/*.php dans votre-thème/mugiwara-lms/.

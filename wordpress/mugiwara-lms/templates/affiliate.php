@@ -23,40 +23,47 @@ $nonce   = function ( $action ) {
 };
 $account = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : wp_login_url();
 ?>
-<div class="mla mla-aff" data-mla-berry-value="<?php echo esc_attr( $value ); ?>">
+<div class="mla mla-aff mg-wrap" data-mla-berry-value="<?php echo esc_attr( $value ); ?>">
 	<?php if ( ! empty( $v['flash'] ) ) : ?>
 		<div class="mla-alert<?php echo 'error' === $v['flash'][0] ? ' mla-alert--error' : ( 'success' === $v['flash'][0] ? ' mla-alert--success' : '' ); ?>" role="status"><?php echo esc_html( $v['flash'][1] ); ?></div>
 	<?php endif; ?>
 
 	<?php if ( 'approved' !== $v['status'] ) : ?>
-		<section class="mla-aff-hero">
-			<div class="mla-aff-hero__text">
-				<span class="mla-eyebrow">Programme de parrainage</span>
-				<h1 class="mla-aff-hero__title">Recommandez Mugiwara Academy, gagnez des <span class="mla-aff-hl">Berry</span></h1>
-				<p>Partagez vos liens. À chaque achat, vous gagnez <strong><?php echo esc_html( $rate ); ?> %</strong> du montant en Berry, à transformer en code promo ou à retirer sur Mobile Money.</p>
+		<section class="mla-aff-intro">
+			<div class="mla-aff-intro__text">
+				<span class="mg-tag mg-tag--lime">Programme de parrainage</span>
+				<h1 class="mg-h1 mla-aff-intro__title">Recommandez, gagnez des <span class="mg-hl">Berry</span></h1>
+				<p class="mg-lead">Partagez vos liens Mugiwara Academy. À chaque achat, vous gagnez <strong><?php echo esc_html( $rate ); ?> %</strong> du montant en Berry, à transformer en code promo ou à retirer sur Mobile Money.</p>
+				<?php if ( ! $v['user_id'] ) : ?>
+					<div class="mg-row mla-aff-intro__cta">
+						<a class="mg-btn" href="<?php echo esc_url( add_query_arg( 'redirect_to', rawurlencode( MLA_Affiliate::page_url() ), $account ) ); ?>">Rejoindre le programme</a>
+						<a class="mg-btn mg-btn--ghost" href="#mla-aff-how">Comment ça marche</a>
+					</div>
+				<?php endif; ?>
 			</div>
-			<div class="mla-aff-hero__coin" aria-hidden="true"><?php $berry( 120 ); ?></div>
+			<aside class="mg-panel mg-panel--dark mla-aff-intro__panel">
+				<div class="mla-aff-coin"><?php $berry( 64 ); ?><div><strong>1 Berry</strong><span>= <?php echo esc_html( MLA_Affiliate::format_fcfa( $value ) ); ?></span></div></div>
+				<ul>
+					<li><?php echo esc_html( $rate ); ?> % de chaque achat via vos liens</li>
+					<li>Un lien pour tout le site ou par formation</li>
+					<li>Utilisable dès <?php echo esc_html( MLA_Affiliate::format_berry( $minimum ) ); ?> Berry</li>
+					<li>Retrait MTN, Moov, Celtiis ou Orange Money</li>
+				</ul>
+			</aside>
 		</section>
 
-		<ul class="mla-aff-facts">
-			<li><?php $icon( 'trending-up', 22 ); ?><strong><?php echo esc_html( $rate ); ?> %</strong><span>de chaque achat</span></li>
-			<li><?php $berry( 24 ); ?><strong>1 Berry = <?php echo esc_html( MLA_Affiliate::format_fcfa( $value ) ); ?></strong><span>valeur fixe</span></li>
-			<li><?php $icon( 'wallet', 22 ); ?><strong>Dès <?php echo esc_html( MLA_Affiliate::format_berry( $minimum ) ); ?> Berry</strong><span>retrait ou code promo</span></li>
-			<li><?php $icon( 'phone', 22 ); ?><strong>Mobile Money</strong><span>MTN, Moov, Celtiis, Orange</span></li>
-		</ul>
-
-		<ol class="mla-aff-steps">
-			<li><span>1</span><div><strong>Rejoignez le programme</strong><p>Créez votre compte et envoyez votre demande, validée par notre équipe.</p></div></li>
-			<li><span>2</span><div><strong>Partagez vos liens</strong><p>Un lien pour tout le site ou un lien par formation, à publier où vous voulez.</p></div></li>
-			<li><span>3</span><div><strong>Encaissez vos Berry</strong><p>Code promo instantané, ou retrait reçu sous 1 jour ouvré.</p></div></li>
-		</ol>
+		<div class="mg-grid-3 mla-aff-how" id="mla-aff-how">
+			<div class="mg-step mg-step--on"><b>01</b><h3>Rejoignez</h3><p>Créez votre compte et envoyez votre demande : notre équipe la valide rapidement.</p></div>
+			<div class="mg-step"><b>02</b><h3>Partagez</h3><p>Publiez votre lien sur WhatsApp, TikTok, Facebook ou votre blog.</p></div>
+			<div class="mg-step"><b>03</b><h3>Encaissez</h3><p>Code promo instantané, ou retrait Mobile Money reçu sous 1 jour ouvré.</p></div>
+		</div>
 
 		<div class="mla-aff-card">
 			<?php if ( ! $v['user_id'] ) : ?>
-				<h2 class="mla-aff-card__title">Commencer</h2>
-				<p class="mla-muted">Connectez-vous ou créez votre compte gratuit pour envoyer votre demande d’adhésion.</p>
-				<div class="mla-aff-actions">
-					<a class="mla-btn" href="<?php echo esc_url( add_query_arg( 'redirect_to', rawurlencode( MLA_Affiliate::page_url() ), $account ) ); ?>"><?php $icon( 'user', 16 ); ?><span>Créer un compte ou se connecter</span></a>
+				<h2 class="mla-aff-card__title">Prêt à commencer ?</h2>
+				<p class="mla-muted">Connectez-vous ou créez votre compte gratuit, puis envoyez votre demande d’adhésion en une minute.</p>
+				<div class="mg-row mla-aff-actions">
+					<a class="mg-btn" href="<?php echo esc_url( add_query_arg( 'redirect_to', rawurlencode( MLA_Affiliate::page_url() ), $account ) ); ?>">Créer un compte ou se connecter</a>
 				</div>
 			<?php elseif ( 'suspended' === $v['status'] ) : ?>
 				<div class="mla-aff-state">
@@ -96,7 +103,7 @@ $account = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( '
 					</label>
 					<label class="mla-field"><span>Quelques mots sur vous (facultatif)</span><textarea name="motivation" rows="3" maxlength="600" placeholder="Votre audience, votre projet…"></textarea></label>
 					<label class="mla-check"><input type="checkbox" name="terms" value="1" required> J’accepte les règles du programme : pas de spam, pas d’achat via mon propre lien, commissions annulées en cas de remboursement.</label>
-					<button type="submit" class="mla-btn mla-btn--block"><?php $icon( 'users', 16 ); ?><span>Envoyer ma demande</span></button>
+					<button type="submit" class="mg-btn mg-btn--block">Envoyer ma demande</button>
 				</form>
 			<?php endif; ?>
 		</div>
@@ -108,26 +115,28 @@ $account = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( '
 		$can_use    = $s['balance'] >= $minimum;
 		$to_minimum = min( 100, $minimum > 0 ? floor( 100 * $s['balance'] / $minimum ) : 100 );
 		?>
-		<header class="mla-hero mla-aff-dash-hero">
+		<header class="mla-aff-dash-head">
 			<div>
-				<p class="mla-hero__hello">Programme de parrainage · code <strong><?php echo esc_html( $v['code'] ); ?></strong></p>
-				<h2 class="mla-hero__title">Mon tableau de bord</h2>
+				<span class="mg-tag mg-tag--lime">Espace parrain</span>
+				<h1 class="mla-aff-dash-head__title">Bonjour <?php echo esc_html( wp_get_current_user()->first_name ?: wp_get_current_user()->display_name ); ?></h1>
+				<p class="mla-muted">Votre code : <button type="button" class="mla-code-chip" data-mla-copy-text="<?php echo esc_attr( $v['code'] ); ?>" title="Copier le code"><?php echo esc_html( $v['code'] ); ?> <?php $icon( 'copy', 14 ); ?></button></p>
 			</div>
 			<div class="mla-aff-balance">
-				<?php $berry( 40 ); ?>
+				<?php $berry( 44 ); ?>
 				<div>
-					<strong><?php echo esc_html( MLA_Affiliate::format_berry( $s['balance'] ) ); ?> <small>Berry</small></strong>
+					<small>Solde disponible</small>
+					<strong><?php echo esc_html( MLA_Affiliate::format_berry( $s['balance'] ) ); ?> <em>Berry</em></strong>
 					<span>≈ <?php echo esc_html( MLA_Affiliate::format_fcfa( MLA_Affiliate::fcfa( $s['balance'] ) ) ); ?></span>
 				</div>
 			</div>
 		</header>
 
-		<nav class="mla-tabs mla-aff-tabs" role="tablist" data-mla-aff-tabs>
-			<button type="button" role="tab" class="is-active" data-mla-aff-tab="apercu"><?php $icon( 'trending-up', 16 ); ?><span>Vue d’ensemble</span></button>
-			<button type="button" role="tab" data-mla-aff-tab="liens"><?php $icon( 'link', 16 ); ?><span>Mes liens</span></button>
-			<button type="button" role="tab" data-mla-aff-tab="berry"><?php $icon( 'wallet', 16 ); ?><span>Utiliser mes Berry</span></button>
-			<button type="button" role="tab" data-mla-aff-tab="historique"><?php $icon( 'list', 16 ); ?><span>Historique</span></button>
-			<button type="button" role="tab" data-mla-aff-tab="parametres"><?php $icon( 'settings', 16 ); ?><span>Paramètres</span></button>
+		<nav class="mla-aff-tabs" role="tablist" data-mla-aff-tabs>
+			<button type="button" role="tab" class="is-active" data-mla-aff-tab="apercu">Vue d’ensemble</button>
+			<button type="button" role="tab" data-mla-aff-tab="liens">Mes liens</button>
+			<button type="button" role="tab" data-mla-aff-tab="berry">Utiliser mes Berry</button>
+			<button type="button" role="tab" data-mla-aff-tab="historique">Historique</button>
+			<button type="button" role="tab" data-mla-aff-tab="parametres">Paramètres</button>
 		</nav>
 
 		<section class="mla-aff-panel is-active" data-mla-aff-panel="apercu">
@@ -206,7 +215,7 @@ $account = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( '
 						<input type="number" name="berries" min="<?php echo esc_attr( $minimum ); ?>" max="<?php echo esc_attr( $s['balance'] ); ?>" step="0.01" value="<?php echo esc_attr( $can_use ? $s['balance'] : $minimum ); ?>" required data-mla-berry-input <?php disabled( ! $can_use ); ?>>
 					</label>
 					<p class="mla-aff-preview">Valeur du code : <strong data-mla-berry-fcfa><?php echo esc_html( MLA_Affiliate::format_fcfa( MLA_Affiliate::fcfa( $can_use ? $s['balance'] : $minimum ) ) ); ?></strong></p>
-					<button type="submit" class="mla-btn mla-btn--block" <?php disabled( ! $can_use ); ?>><?php $icon( 'ticket', 16 ); ?><span>Créer mon code promo</span></button>
+					<button type="submit" class="mg-btn mg-btn--block" <?php disabled( ! $can_use ); ?>>Créer mon code promo</button>
 				</form>
 
 				<form method="post" class="mla-aff-card mla-form" data-mla-berry-form>
@@ -224,7 +233,7 @@ $account = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( '
 					</fieldset>
 					<label class="mla-field"><span>Numéro Mobile Money</span><input type="tel" name="phone" value="<?php echo esc_attr( $v['payout']['phone'] ); ?>" required placeholder="+229 01 00 00 00 00" <?php disabled( ! $can_use ); ?>></label>
 					<label class="mla-field"><span>Nom du titulaire</span><input type="text" name="holder" value="<?php echo esc_attr( $v['payout']['holder'] ); ?>" required <?php disabled( ! $can_use ); ?>></label>
-					<button type="submit" class="mla-btn mla-btn--block" <?php disabled( ! $can_use ); ?>><?php $icon( 'banknote', 16 ); ?><span>Demander le retrait</span></button>
+					<button type="submit" class="mg-btn mg-btn--block" <?php disabled( ! $can_use ); ?>>Demander le retrait</button>
 				</form>
 			</div>
 		</section>
@@ -307,7 +316,7 @@ $account = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( '
 				<label class="mla-field"><span>Numéro Mobile Money</span><input type="tel" name="phone" value="<?php echo esc_attr( $v['payout']['phone'] ); ?>"></label>
 				<label class="mla-field"><span>Nom du titulaire</span><input type="text" name="holder" value="<?php echo esc_attr( $v['payout']['holder'] ); ?>"></label>
 				<label class="mla-check"><input type="checkbox" name="notify" value="1" <?php checked( 'no' !== get_user_meta( $v['user_id'], 'mla_aff_notify', true ) ); ?>> Recevoir un e-mail à chaque commission</label>
-				<button type="submit" class="mla-btn"><?php $icon( 'check', 16 ); ?><span>Enregistrer</span></button>
+				<button type="submit" class="mg-btn mg-btn--sm">Enregistrer</button>
 			</form>
 			<div class="mla-aff-card">
 				<h3 class="mla-aff-card__title">Rappel des règles</h3>

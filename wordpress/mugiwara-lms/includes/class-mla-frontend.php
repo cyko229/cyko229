@@ -31,6 +31,7 @@ class MLA_Frontend {
 
 		add_action( 'init', array( __CLASS__, 'register_assets' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_account_assets' ) );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'global_styles' ) );
 		add_filter( 'body_class', array( __CLASS__, 'body_class' ) );
 		add_action( 'rest_api_init', array( __CLASS__, 'rest_routes' ) );
 
@@ -257,6 +258,22 @@ class MLA_Frontend {
 		wp_register_style( 'mla-front', MLA_URL . 'assets/front.css', array(), MLA_VERSION );
 		wp_add_inline_style( 'mla-front', ':root{--mla-accent:' . sanitize_hex_color( mla_option( 'accent', '#1E4DF0' ) ) . ';}' );
 		wp_register_script( 'mla-front', MLA_URL . 'assets/front.js', array(), MLA_VERSION, true );
+	}
+
+	/**
+	 * Styles chargés sur tout le site : « Mon compte » du menu mobile affiché comme un bouton avec icône
+	 * (élément de menu portant la classe mla-menu-account).
+	 */
+	public static function global_styles() {
+		$icon = rawurlencode( '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' );
+		wp_register_style( 'mla-global', false, array(), MLA_VERSION );
+		wp_enqueue_style( 'mla-global' );
+		wp_add_inline_style(
+			'mla-global',
+			'.elementor-nav-menu .menu-item.mla-menu-account>a,.elementor-nav-menu--dropdown .menu-item.mla-menu-account>a{display:flex!important;align-items:center;justify-content:center;gap:10px;margin:14px 16px 6px!important;padding:14px 22px!important;border-radius:99px!important;background:#1E4DF0!important;color:#fff!important;font-weight:700!important;border:0!important}'
+			. '.elementor-nav-menu .menu-item.mla-menu-account>a:hover,.elementor-nav-menu--dropdown .menu-item.mla-menu-account>a:hover{background:#1233B5!important;color:#fff!important}'
+			. '.elementor-nav-menu .menu-item.mla-menu-account>a::before{content:""!important;display:block!important;position:static!important;opacity:1!important;transform:none!important;inset:auto!important;width:18px!important;height:18px!important;flex:none;background:currentColor!important;-webkit-mask:url("data:image/svg+xml,' . $icon . '") center/contain no-repeat;mask:url("data:image/svg+xml,' . $icon . '") center/contain no-repeat}'
+		);
 	}
 
 	public static function enqueue_account_assets() {

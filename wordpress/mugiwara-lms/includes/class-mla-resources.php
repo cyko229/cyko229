@@ -406,11 +406,11 @@ class MLA_Resources {
 		$types   = array();
 		ob_start();
 		?>
-		<div class="mla mla-res-page">
+		<div class="mla mla-res-page mg-wrap">
 			<header class="mla-res-hero">
-				<span class="mla-eyebrow">Ressources</span>
-				<h1 class="mla-res-hero__title">Logiciels, PDF et modèles prêts à l’emploi</h1>
-				<p>Des outils sélectionnés pour aller plus vite. Achetez une fois, téléchargez quand vous voulez depuis votre espace « Mes téléchargements ».</p>
+				<span class="mg-tag mg-tag--lime">Ressources</span>
+				<h1 class="mg-h1">Logiciels, PDF et modèles <span class="mg-hl">prêts à l’emploi</span></h1>
+				<p class="mg-lead">Des outils sélectionnés pour aller plus vite. Achetez une fois, téléchargez quand vous voulez depuis votre espace « Mes téléchargements ».</p>
 			</header>
 			<?php if ( ! $ids ) : ?>
 				<div class="mla-empty"><div class="mla-empty__icon"><?php echo MLA_Icons::get( 'package', 40 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div><h3>Les ressources arrivent bientôt</h3><p>Revenez très vite : de nouveaux outils sont en préparation.</p></div>
@@ -459,7 +459,7 @@ class MLA_Resources {
 									<?php if ( $owned ) : ?>
 										<a class="mla-btn mla-btn--ghost" href="<?php echo esc_url( self::download_url( $pid ) ); ?>" target="_blank" rel="noopener"><?php echo MLA_Icons::get( 'download', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span>Télécharger</span></a>
 									<?php elseif ( $product->is_purchasable() && $product->is_in_stock() ) : ?>
-										<a class="mla-btn" href="<?php echo esc_url( $product->add_to_cart_url() ); ?>" data-quantity="1" data-product_id="<?php echo (int) $pid; ?>" rel="nofollow"><?php echo MLA_Icons::get( 'bag', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span>Acheter</span></a>
+										<a class="mg-btn mg-btn--sm" href="<?php echo esc_url( $product->add_to_cart_url() ); ?>" data-quantity="1" data-product_id="<?php echo (int) $pid; ?>" rel="nofollow">Acheter</a>
 									<?php endif; ?>
 								</div>
 							</div>
