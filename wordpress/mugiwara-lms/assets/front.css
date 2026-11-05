@@ -487,3 +487,23 @@ body .mla .mla-copy input{flex:1;min-width:0;border:1.5px dashed #C9CDDA;border-
 	.mla-methods{grid-template-columns:1fr}
 	.mla-aff-card{border-radius:22px}
 }
+
+/* ---------------- 1.9.1 : lecteur sur mobile ---------------- */
+.mla-viewer-bar{display:flex;justify-content:center;gap:8px;margin:10px 0 0;flex-wrap:wrap}
+.mla-viewer-bar[hidden]{display:none}
+body .mla .mla-viewer-bar__btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:8px 16px;border-radius:99px;border:1.5px solid var(--mla-line);background:#fff;color:var(--mla-ink)!important;font:inherit;font-size:14px;font-weight:700;text-decoration:none!important;cursor:pointer;box-shadow:none}
+body .mla .mla-viewer-bar__btn:hover{border-color:var(--mla-ink)}
+body .mla .mla-viewer-bar__btn[hidden]{display:none}
+.mla-viewer-wrap.is-fullscreen,.mla-viewer-wrap:fullscreen{background:#000;display:flex;align-items:center;justify-content:center}
+.mla-viewer-wrap.is-fullscreen .mla-viewer,.mla-viewer-wrap:fullscreen .mla-viewer{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;border-radius:0!important}
+.mla-viewer-wrap.is-fullscreen .mla-viewer__dl{display:none!important}
+@media (max-width:768px){
+	.mla-viewer-bar{margin-top:8px}
+	body .mla .mla-viewer-bar__btn{flex:1 1 0;min-width:0}
+	body .mla .mla-viewer.is-drive{border-radius:12px;background:#000}
+	.mla-lesson-head{flex-direction:column;align-items:stretch}
+	.mla-lesson-actions{width:100%}
+	.mla-lesson-actions .mla-btn{flex:1 1 0;justify-content:center}
+	.mla-pager{justify-content:space-between}
+}
+@media (max-width:768px){body .mla .mla-viewer-bar__btn{white-space:nowrap;font-size:13.5px;padding:8px 10px}}

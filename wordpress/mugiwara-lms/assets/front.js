@@ -149,6 +149,10 @@
 			description: $('[data-mla-description]', root),
 			download: $('[data-mla-download]', root),
 			viewerDl: $('[data-mla-viewer-dl]', root),
+			wrap: $('[data-mla-viewer-wrap]', root),
+			bar: $('[data-mla-viewer-bar]', root),
+			open: $('[data-mla-open]', root),
+			fullscreen: $('[data-mla-fullscreen]', root),
 			doneBtn: $('[data-mla-done]', root),
 			prev: $('[data-mla-prev]', root),
 			next: $('[data-mla-next]', root),
@@ -175,7 +179,8 @@
 
 		function renderViewer(l) {
 			if (!el.viewer) { return; }
-			el.viewer.className = 'mla-viewer mla-viewer--' + l.type;
+			var isDrive = !!l.embed && l.embed.indexOf('drive.google.com/file/') !== -1;
+			el.viewer.className = 'mla-viewer mla-viewer--' + l.type + (isDrive ? ' is-drive' : '');
 			el.viewer.innerHTML = '';
 			if (l.embed) {
 				var f = document.createElement('iframe');
@@ -199,6 +204,50 @@
 				box.appendChild(a);
 				el.viewer.appendChild(box);
 			}
+		}
+
+		// Sur mobile, le lecteur Google Drive ajoute une barre d'environ 48 px au-dessus de la vidéo :
+		// on agrandit le cadre d'autant pour que la vidéo et ses commandes restent entières.
+		function fitViewer() {
+			if (!el.viewer) { return; }
+			var drive = el.viewer.classList.contains('is-drive') && el.viewer.classList.contains('mla-viewer--video');
+			var inFs = document.fullscreenElement || document.webkitFullscreenElement;
+			if (drive && !inFs && window.matchMedia('(max-width: 768px)').matches) {
+				el.viewer.style.aspectRatio = 'auto';
+				el.viewer.style.height = Math.round(el.viewer.clientWidth * 9 / 16 + 48) + 'px';
+			} else {
+				el.viewer.style.aspectRatio = '';
+				el.viewer.style.height = '';
+			}
+		}
+		window.addEventListener('resize', fitViewer);
+		window.addEventListener('orientationchange', function () { setTimeout(fitViewer, 250); });
+
+		if (el.fullscreen && el.wrap) {
+			el.fullscreen.addEventListener('click', function () {
+				var target = el.wrap;
+				var request = target.requestFullscreen || target.webkitRequestFullscreen;
+				if (!request) {
+					// iPhone : pas de plein écran pour un cadre intégré, on ouvre la vidéo dans Drive.
+					if (current && current.view) { window.open(current.view, '_blank', 'noopener'); }
+					return;
+				}
+				var p = request.call(target);
+				var lock = function () {
+					if (screen.orientation && screen.orientation.lock && current && current.type === 'video') {
+						screen.orientation.lock('landscape').catch(function () {});
+					}
+				};
+				if (p && p.then) { p.then(lock).catch(function () {}); } else { lock(); }
+			});
+			var onFs = function () {
+				var on = !!(document.fullscreenElement || document.webkitFullscreenElement);
+				el.wrap.classList.toggle('is-fullscreen', on);
+				if (!on && screen.orientation && screen.orientation.unlock) { try { screen.orientation.unlock(); } catch (e) {} }
+				fitViewer();
+			};
+			document.addEventListener('fullscreenchange', onFs);
+			document.addEventListener('webkitfullscreenchange', onFs);
 		}
 
 		function renderProgress() {
@@ -260,6 +309,9 @@
 				el.viewerDl.hidden = !l.download || !isVideo;
 				el.viewerDl.href = l.download || '#';
 			}
+			if (el.bar) { el.bar.hidden = !l.embed; }
+			if (el.open) { el.open.hidden = !l.view; el.open.href = l.view || '#'; }
+			fitViewer();
 			setPager(el.prev, lessons[l.index - 1]);
 			setPager(el.next, lessons[l.index + 1]);
 			renderDoneBtn();
@@ -335,6 +387,7 @@
 			if (e.key === 'ArrowLeft' && lessons[current.index - 1]) { show(lessons[current.index - 1], true); }
 		});
 
+		fitViewer();
 		if (current) {
 			history.replaceState({ lesson: current.id }, '', lessonUrl(current));
 			save(current, { viewed: true });

@@ -382,6 +382,7 @@ class MLA_Frontend {
 					'duration'    => $lesson['duration'],
 					'description' => wpautop( $lesson['description'] ),
 					'embed'       => MLA_Drive::embed_url( $lesson['url'] ),
+					'view'        => in_array( MLA_Drive::parse( $lesson['url'] )['kind'], array( 'file', 'folder', 'doc', 'sheet', 'slides', 'youtube' ), true ) ? $lesson['url'] : '',
 					'open'        => 'link' === MLA_Drive::parse( $lesson['url'] )['kind'] ? $lesson['url'] : '',
 					'download'    => $lesson['downloadable'] && MLA_Drive::download_url( $lesson['url'] ) ? self::download_url( $course_id, $lesson['id'] ) : '',
 				);
